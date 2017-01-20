@@ -63,7 +63,7 @@ void max_pool2(__global DATA_TYPE * in, __global DATA_TYPE * out)
     return;
 }
 
-
+/*
 // Conv layer with
 // kernel mask: 5x5
 // stride: 1
@@ -98,6 +98,7 @@ void conv_layer(__global DATA_TYPE * in, __global DATA_TYPE * out,
     out[out_idx] = c + biases[d];
     return;
 }
+*/
 
 // Conv layer with local memory
 // kernel mask: 5x5
@@ -113,7 +114,7 @@ void conv_layer(__global DATA_TYPE * in, __global DATA_TYPE * out,
 #define TILE_Y (CONV_WG_Y+MASK_SIZE-1)
 #define TILE_Z 2
 
-
+/*
 __kernel __attribute__((reqd_work_group_size(CONV_WG_X, CONV_WG_Y, CONV_WG_Z)))
 void conv_local_flatasync(__global DATA_TYPE * in, __global DATA_TYPE * out,
                 __constant DATA_TYPE * weight, __constant DATA_TYPE * biases,
@@ -164,6 +165,7 @@ void conv_local_flatasync(__global DATA_TYPE * in, __global DATA_TYPE * out,
     out[out_idx] = relu(c + biases[d]);
     return;
 }
+*/
 
 __kernel __attribute__((reqd_work_group_size(CONV_WG_X, CONV_WG_Y, CONV_WG_Z)))
 void conv_local_flatmem(__global DATA_TYPE * in, __global DATA_TYPE * out,
@@ -198,7 +200,8 @@ void conv_local_flatmem(__global DATA_TYPE * in, __global DATA_TYPE * out,
             for(size_t cw = 0; cw < MASK_SIZE; ++cw)
             {
                 c += tile[getIdx2D(ch + get_local_id(1), cw + get_local_id(0), TILE_X)]
-                * weight[cw + (ch + cd * mask_depth) * MASK_SIZE];
+                * weight[cw + (ch + cd * mask_depth) * MASK_SIZE + d * MASK_SIZE * MASK_SIZE * mask_depth];
+//                * weight[cw + (ch + cd * mask_depth) * MASK_SIZE];
             }
         }
     }
@@ -211,7 +214,7 @@ void conv_local_flatmem(__global DATA_TYPE * in, __global DATA_TYPE * out,
 // number of output neuron
 
 #define INEURON 512 // num of input neuron
-#define ONEURON 256  // num of output neuron for a work-group!
+#define ONEURON 64  // num of output neuron for a work-group!
 #define N_SYNAPSES (INEURON*ONEURON)
 
 __kernel __attribute__((reqd_work_group_size(ONEURON, 1, 1)))

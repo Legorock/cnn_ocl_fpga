@@ -1,5 +1,17 @@
 
-
+# Xilinx FPGA temporaries
 *.xclbin
 _xocc_*
 .Xil
+*.ll
+
+# object files
+*.o
+*.xo
+
+# debuging text outputs
+seq_out.txt
+ocl_out.txt
+
+# VIM .swp files
+*.swp

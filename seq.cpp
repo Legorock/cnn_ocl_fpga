@@ -44,7 +44,8 @@ void max_pool2_seq(const std::vector<float>& in,  const std::size_t in_dims[3],
                 num i3 = index3(w, h+1, d, in_dims);
                 num i4 = index3(w+1, h+1, d, in_dims);
                 num o = index3(w/2, h/2, d, out_dims);
-                out[o] = max(i4, max(i3, max(i2, i1)));
+                //out[o] = max(i4, max(i3, max(i2, i1)));
+                out[o] = max(in[i4], max(in[i3], max(in[i2], in[i1])));
             }
         }
     }

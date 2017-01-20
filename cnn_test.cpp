@@ -27,39 +27,41 @@ inline static krnl_data_map sequential_runs(std::map<std::string, std::vector<Da
         std::vector<Data> & krnl_data = krnl_run.second;
         if(krnl_name == "max_pool")
         {
-            std::cerr << "maxpool sequential test!\n";
+            //std::cerr << "maxpool sequential test!\n";
             auto v_in_dims = krnl_data[0].dims;
             auto v_out_dims = krnl_data[1].dims;
             std::size_t in_dims[3] = {v_in_dims[0], v_in_dims[1], v_in_dims[2]};
             std::size_t out_dims[3] = {v_out_dims[0], v_out_dims[1], v_out_dims[2]};
             max_pool2_seq(krnl_data[0].buffer, in_dims, krnl_data[1].buffer, out_dims);
-            std::cerr << "maxpool sequential ends!\n";
+            //std::cerr << "maxpool sequential ends!\n";
         }
         else if(krnl_name == "conv")
         {
-            std::cerr << "conv sequential test!\n";
+            //std::cerr << "conv sequential test!\n";
             auto v_in_dims = krnl_data[0].dims;
             auto v_out_dims = krnl_data[1].dims;
             std::size_t in_dims[3] = {v_in_dims[0], v_in_dims[1], v_in_dims[2]};
             std::size_t out_dims[3] = {v_out_dims[0], v_out_dims[1], v_out_dims[2]};
             conv_seq(krnl_data[0].buffer, in_dims, krnl_data[1].buffer, out_dims, krnl_data[2].buffer, krnl_data[3].buffer);
-            std::cerr << "conv sequnetial ends!\n";
+            //std::cerr << "conv sequnetial ends!\n";
         }
         else if(krnl_name == "softmax")
         {
-            std::cerr << "softmax sequential test!\n";
+            //std::cerr << "softmax sequential test!\n";
             std::size_t in_dim = krnl_data[0].dims[0];
             softmax_seq(krnl_data[0].buffer, in_dim, krnl_data[1].buffer);
-            std::cerr << "softmax sequential ends!\n";
+            //std::cerr << "softmax sequential ends!\n";
         }
         else if(krnl_name == "fully_connected")
         {
-            std::cerr << "fc sequential test!\n";
+            //std::cerr << "fc sequential test!\n";
             std::size_t in_dim = krnl_data[0].dims[0];
             std::size_t out_dim = krnl_data[1].dims[0];
             fc_seq(krnl_data[0].buffer, in_dim, krnl_data[1].buffer, out_dim, krnl_data[2].buffer, krnl_data[3].buffer);
-            std::cerr << "fc sequential ends!\n";
+            //std::cerr << "fc sequential ends!\n";
         }
+
+        std::cout << krnl_name << " sequential tested!" << std::endl;
         outs[krnl_name] = krnl_data[1];
     }
     return outs;
@@ -84,7 +86,7 @@ inline static std::map<std::string, std::vector<Data>> gen_run_data()
         {
             Data in, out, w, b;
             in.dims = {12, 12, 1};
-            out.dims = {in.dims[0]-4, in.dims[1]-4, 4};
+            out.dims = {in.dims[0]-4, in.dims[1]-4, 32};
             w.dims = {5 * 5 * in.dims[2] * out.dims[2]};
             b.dims = {out.dims[2]};
             in.buffer = gen3Data<'w'>(in.dims[0], in.dims[1], in.dims[2]);
@@ -130,25 +132,40 @@ inline static void print_buf(std::ostream& o, const T *  buf,
     {
         for(std::size_t i = 0; i < dims[curr_dim]; ++i)
         {
+            //std::cerr << *(buf + i) << '\t';
             o << *(buf + i) << '\t';
         }
+        //std::cerr << '\n';
         o << '\n';
     }
     else
     {
+        std::size_t stride = 1;
+        for(std::size_t d = curr_dim-1; d != 0; --d)
+        {
+            stride *= dims[d];
+        }
+        stride *= dims[0];
+
         for(std::size_t i = 0; i < dims[curr_dim]; ++i)
         {
-            print_buf<T>(o, buf + i * dims[curr_dim-1], dims, curr_dim-1);
+            print_buf<T>(o, buf + i * stride, dims, curr_dim-1);
         }
+        //std::cerr << '\n';
         o << '\n';
     }
 }
-inline static void print_seq_test(std::ofstream & file_out, const krnl_data_map & out_data)
+inline static void print_test_results(std::ofstream & file_out, 
+                                      const krnl_data_map & out_data,
+                                      const std::string & out_kernel_name = std::string("all"))
 {
-    std::cout << "printing sequential test result!" << std::endl;
+    std::cout << "printing test result!" << std::endl;
     for(const auto & d : out_data)
     {
         auto & kernel_name = d.first;
+        if(out_kernel_name != "all" && out_kernel_name != kernel_name)
+            continue;
+
         auto & out = d.second; 
 
         file_out << kernel_name << " results!\n";
@@ -158,6 +175,7 @@ inline static void print_seq_test(std::ofstream & file_out, const krnl_data_map 
         print_buf<float>(file_out, buff.data(), dims, dims.size()-1);
         file_out << std::endl;
     }
+    file_out << std::endl;
 }
 
 void cnn_test::ocl_maxpool2_run(cl_kernel kernel, std::vector<Data>& data)
@@ -215,7 +233,7 @@ void cnn_test::ocl_conv_run(cl_kernel kernel, std::vector<Data>& data)
     auto & in_dims = data[0].dims;
     auto & out_dims = data[1].dims;
     size_t buf_in_size = in_dims[0] * in_dims[1] * in_dims[2]  * sizeof(float);
-    size_t buf_out_size = in_dims[0] * in_dims[1] * in_dims[2] * sizeof(float);
+    size_t buf_out_size = out_dims[0] * out_dims[1] * out_dims[2] * sizeof(float);
     size_t buf_w_size = data[2].dims[0] * sizeof(float);
     size_t buf_b_size = data[3].dims[0] * sizeof(float);
 
@@ -230,14 +248,19 @@ void cnn_test::ocl_conv_run(cl_kernel kernel, std::vector<Data>& data)
     xcl_memcpy_to_device(test_world, buf_w, data_weight.buffer.data(), buf_w_size);
     xcl_memcpy_to_device(test_world, buf_b, data_biases.buffer.data(), buf_b_size);
 
+    cl_uchar in_width = static_cast<cl_uchar>(in_dims[0]);
+    cl_uchar in_height = static_cast<cl_uchar>(in_dims[1]);
+    cl_uchar mask_depth = static_cast<cl_uchar>(in_dims[2]);
+
+
     cl_int err = CL_SUCCESS;
     err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &buf_in);
     err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &buf_out);
     err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &buf_w);
     err |= clSetKernelArg(kernel, 3, sizeof(cl_mem), &buf_b);
-    err |= clSetKernelArg(kernel, 4, sizeof(size_t), &(in_dims[0]));
-    err |= clSetKernelArg(kernel, 5, sizeof(size_t), &(in_dims[1]));
-    err |= clSetKernelArg(kernel, 6, sizeof(size_t), &(in_dims[2]));
+    err |= clSetKernelArg(kernel, 4, sizeof(cl_uchar), &in_width);
+    err |= clSetKernelArg(kernel, 5, sizeof(cl_uchar), &in_height);
+    err |= clSetKernelArg(kernel, 6, sizeof(cl_uchar), &mask_depth);
 
     if(err != CL_SUCCESS)
     {
@@ -370,7 +393,7 @@ krnl_data_map cnn_test::ocl_runs(std::map<std::string, std::vector<Data>>& data)
     for(cl_kernel kernel : kernels)
     {
         auto kernel_name = get_kernel_name(kernel);
-        //std::cout << kernel_name << std::endl;
+        std::cout << "actual ocl kernel name: " << kernel_name << std::endl;
         if(kernel_name.find("max_pool") != std::string::npos)
         {
             ocl_maxpool2_run(kernel, data["max_pool"]);
@@ -429,18 +452,29 @@ cnn_test::~cnn_test()
 
 void cnn_test::test()
 {
-    auto data = gen_run_data();
+    auto seq_data = gen_run_data();
     std::cout << "data generation for test ends!" << std::endl;
     // Sequential CPU run to form a valid output values
     std::cout << "Sequential Runs start!" << std::endl;
-    auto seq_out = sequential_runs(data);
+    auto seq_out = sequential_runs(seq_data);
     std::cout << "Sequential Runs end!" << std::endl;
     std::ofstream seq_test_out("seq_out.txt");
-    print_seq_test(seq_test_out, seq_out);
+    print_test_results(seq_test_out, seq_out, "all");
     seq_test_out.close();
 
-    // OpenCL test run()
+    auto ocl_data = gen_run_data();
+    std::cout << "data generation for test ends!" << std::endl;
+    // OpenCL test run
     std::cout << "OpenCL Runs start!" << std::endl;
-    auto ocl_out = ocl_runs(data);
+    auto ocl_out = ocl_runs(ocl_data);
     std::cout << "OpenCL Runs end!" << std::endl;
+    std::ofstream ocl_test_out("ocl_out.txt");
+    print_test_results(ocl_test_out, ocl_out, "all");
+    ocl_test_out.close();
+    
+//    std::vector<std::size_t> dim = {5, 3, 2};
+//    auto print_test = gen3Data<'0'>(dim[0], dim[1], dim[2]);
+//    print_buf<float> (std::cerr, print_test.data(), dim, dim.size()-1);
+
+
 }
