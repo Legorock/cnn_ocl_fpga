@@ -1,6 +1,7 @@
 #include "cnn_test.h"
 
 #include <cstdlib>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 
@@ -12,15 +13,52 @@
 
 template<typename T>
 inline static void print_buf(std::ostream& o, const T *  buf, 
-                             const std::vector<std::size_t>& dims, const std::size_t curr_dim);
+        const std::vector<std::size_t>& dims, const std::size_t curr_dim);
 
 const std::vector<std::string> kernel_names = {"max_pool2", "conv_local_flatmem", "softmax_layer", "fully_connected_local"};
+//const std::vector<std::string> kernel_names = {"max_pool2", "conv_layer", "softmax_layer", "fully_connected_local"};
+//const std::vector<std::string> kernel_names = {"max_pool2", "conv_local_flatasync", "softmax_layer", "fully_connected_local"};
 const std::vector<std::string> kernel_layers = {"max_pool", "conv", "fully_connected", "softmax"};
+
+
+static auto absolute = [](const std::vector<float>& seq, const std::vector<float>& ocl)
+{
+    auto it_seq = seq.begin();
+    auto e_seq = seq.end();
+    auto it_ocl = ocl.begin();
+    auto  e_ocl = ocl.end();
+    float diff = 0.0f;
+    for(; it_seq != e_seq && it_ocl != e_ocl; ++it_seq, ++it_ocl)
+    {
+        diff += std::abs( (*it_seq) - (*it_ocl) );
+    }
+    return diff;
+};
+
+    template<typename diff_method>
+inline static float diff_data(const krnl_data_map & seq, const krnl_data_map & ocl, diff_method method)
+{
+    float diff = 0.0f;
+    for(auto & layer_name : kernel_layers)
+    {
+        const auto & seq_buffer = seq.at(layer_name).buffer;
+        const auto & ocl_buffer = ocl.at(layer_name).buffer;
+        
+        if(seq_buffer.size() != ocl_buffer.size())
+        {
+            std::cerr << "diff_data: error buffer sizes doesn't match on layer " << layer_name << ")\n";
+            continue;
+        }
+        std::cerr << "Kernel layer: " << layer_name << '\t' << diff << '\n';
+        diff += method(seq_buffer, ocl_buffer);
+    }
+    return diff;
+}
 
 inline static krnl_data_map sequential_runs(std::map<std::string, std::vector<Data>>& data)
 {
     krnl_data_map outs;
-    
+
     for(auto & krnl_run : data)
     {
         const std::string & krnl_name = krnl_run.first;
@@ -103,7 +141,7 @@ inline static std::map<std::string, std::vector<Data>> gen_run_data()
             out.dims = {in.dims};
             in.buffer = gen1Data(in.dims[0]);
             out.buffer.resize(out.dims[0], 0.0f);
-            
+
             data[krnl_name] = std::vector<Data>({in, out});
         }
         else if(krnl_name == "fully_connected")
@@ -117,16 +155,16 @@ inline static std::map<std::string, std::vector<Data>> gen_run_data()
             out.buffer.resize(out.dims[0], 0.0f);
             w.buffer = std::vector<float>(w.dims[0], 1.0f);
             b.buffer = gen1Data(b.dims[0]);
-            
+
             data[krnl_name] = std::vector<Data>({in, out, w, b});
         }
     }
     return data;
 }
 
-template<typename T>
+    template<typename T>
 inline static void print_buf(std::ostream& o, const T *  buf, 
-                             const std::vector<std::size_t>& dims, const std::size_t curr_dim)
+        const std::vector<std::size_t>& dims, const std::size_t curr_dim)
 {
     if(curr_dim == 0)
     {
@@ -156,8 +194,8 @@ inline static void print_buf(std::ostream& o, const T *  buf,
     }
 }
 inline static void print_test_results(std::ofstream & file_out, 
-                                      const krnl_data_map & out_data,
-                                      const std::string & out_kernel_name = std::string("all"))
+        const krnl_data_map & out_data,
+        const std::string & out_kernel_name = std::string("all"))
 {
     std::cout << "printing test result!" << std::endl;
     for(const auto & d : out_data)
@@ -252,7 +290,6 @@ void cnn_test::ocl_conv_run(cl_kernel kernel, std::vector<Data>& data)
     cl_uchar in_height = static_cast<cl_uchar>(in_dims[1]);
     cl_uchar mask_depth = static_cast<cl_uchar>(in_dims[2]);
 
-
     cl_int err = CL_SUCCESS;
     err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &buf_in);
     err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &buf_out);
@@ -269,6 +306,10 @@ void cnn_test::ocl_conv_run(cl_kernel kernel, std::vector<Data>& data)
     }
 
     auto reqd_wg_size = get_kernel_reqd_wg_size(kernel, test_world.device_id);
+    if((reqd_wg_size[0]*reqd_wg_size[1]*reqd_wg_size[2]) == 0)
+    {
+        reqd_wg_size = {4, 4, 2};
+    }
 
     size_t global[3] = {out_dims[0], out_dims[1], out_dims[2]};
     size_t local[3] = {reqd_wg_size[0], reqd_wg_size[1], reqd_wg_size[2]};
@@ -283,6 +324,20 @@ void cnn_test::ocl_conv_run(cl_kernel kernel, std::vector<Data>& data)
 
     // DEVICE to HOST transfer
     xcl_memcpy_from_device(test_world, data_out.buffer.data(), buf_out, buf_out_size);
+    
+    std::cerr << "out\n";
+    for(std::size_t d = 0; d < 5; ++d)
+    {
+        for(std::size_t h = 0; h < 8; ++h)
+        {
+            for(std::size_t w = 0; w < 8; ++w)
+            {
+                auto idx = w + h * 8 + d * 64;
+                std::cerr << data_out.buffer[idx] << '\t';
+            }std::cerr << '\n';
+        }std::cerr << '\n';
+    }std::cerr << '\n';
+
 
     clReleaseMemObject(buf_in);
     clReleaseMemObject(buf_out);
@@ -339,10 +394,15 @@ void cnn_test::ocl_fc_run(cl_kernel kernel, std::vector<Data>& data)
     // DEVICE to HOST transfer
     xcl_memcpy_from_device(test_world, data_out.buffer.data(), buf_out, buf_out_size);
 
+    std::cerr << "1\n";
     clReleaseMemObject(buf_in);
+    std::cerr << "2\n";
     clReleaseMemObject(buf_out);
+    std::cerr << "3\n";
     clReleaseMemObject(buf_w);
+    std::cerr << "4\n";
     clReleaseMemObject(buf_b);
+    std::cerr << "5\n";
 }
 
 void cnn_test::ocl_softmax_run(cl_kernel kernel, std::vector<Data>& data)
@@ -406,13 +466,13 @@ krnl_data_map cnn_test::ocl_runs(std::map<std::string, std::vector<Data>>& data)
         }
         else if(kernel_name.find("fully_connected") != std::string::npos)
         {
-           ocl_fc_run(kernel, data["fully_connected"]);
-           out["fully_connected"] = data["fully_connected"][1];
+//            ocl_fc_run(kernel, data["fully_connected"]);
+//            out["fully_connected"] = data["fully_connected"][1];
         }
         else if(kernel_name.find("softmax") != std::string::npos)
         {
-           ocl_softmax_run(kernel, data["softmax"]);
-           out["softmax"] = data["softmax"][1];
+            ocl_softmax_run(kernel, data["softmax"]);
+            out["softmax"] = data["softmax"][1];
         }
         else
         {
@@ -424,8 +484,7 @@ krnl_data_map cnn_test::ocl_runs(std::map<std::string, std::vector<Data>>& data)
 }
 
 // Constructor
-cnn_test::cnn_test(xcl_world& world, const char * clFilename, bool isBinary)
-  : test_world(world)
+cnn_test::cnn_test(xcl_world& world, const char * clFilename, bool isBinary) : test_world(world)
 {    
     if(isBinary)
     {
@@ -436,7 +495,7 @@ cnn_test::cnn_test(xcl_world& world, const char * clFilename, bool isBinary)
         kernels.reserve(kernel_names.size());
         for(std::size_t i = 0; i < kernel_names.size(); ++i)
         {
-             kernels.push_back(xcl_import_source(world, clFilename, kernel_names[i].c_str()));
+            kernels.push_back(xcl_import_source(world, clFilename, kernel_names[i].c_str()));
         } 
     }
 }
@@ -450,7 +509,7 @@ cnn_test::~cnn_test()
     }
 }
 
-void cnn_test::test()
+float cnn_test::test()
 {
     auto seq_data = gen_run_data();
     std::cout << "data generation for test ends!" << std::endl;
@@ -472,9 +531,11 @@ void cnn_test::test()
     print_test_results(ocl_test_out, ocl_out, "all");
     ocl_test_out.close();
     
-//    std::vector<std::size_t> dim = {5, 3, 2};
-//    auto print_test = gen3Data<'0'>(dim[0], dim[1], dim[2]);
-//    print_buf<float> (std::cerr, print_test.data(), dim, dim.size()-1);
+    return 0.0f;
+//    return diff_data(seq_out, ocl_out, absolute);
+}
 
-
+float cnn_test::test_img()
+{
+    return 0.0f;
 }

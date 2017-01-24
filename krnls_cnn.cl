@@ -22,22 +22,6 @@ size_t getIdx3D(const size_t z, const size_t y, const size_t x,
     return x + y * (width) + z * (width * height);
 }
 
-/*
-// non-linear activation layer with rectified linear unit
-__kernel __attribute__((reqd_work_group_size(4, 4, 4)))
-void relu_layer(__global DATA_TYPE * in, __global DATA_TYPE * out)
-{
-    size_t w = get_global_id(0);
-    size_t h = get_global_id(1);
-    size_t d = get_global_id(2);
-    size_t width = get_global_size(0);
-    size_t height = get_global_size(1);
-    size_t idx = w + width * (h + d * height);
-    out[idx] = max((DATA_TYPE)0, in[idx]);
-    return;
-}
-*/
-
 // Max pooling layer with
 // poolsize: 2x2
 // stride equal to poolsize
@@ -63,7 +47,6 @@ void max_pool2(__global DATA_TYPE * in, __global DATA_TYPE * out)
     return;
 }
 
-/*
 // Conv layer with
 // kernel mask: 5x5
 // stride: 1
@@ -90,7 +73,7 @@ void conv_layer(__global DATA_TYPE * in, __global DATA_TYPE * out,
             for(size_t cw = 0; cw < 5; ++cw)
             {
                 c += in[in_idx + cw + (ch + cd * in_height) * in_width]
-                * weight[cw + (ch + cd * mask_depth) * 5];
+                * weight[cw + (ch + cd * mask_depth) * 5 + d * 5 * 5  * mask_depth];
             }
         }
     }
@@ -98,7 +81,6 @@ void conv_layer(__global DATA_TYPE * in, __global DATA_TYPE * out,
     out[out_idx] = c + biases[d];
     return;
 }
-*/
 
 // Conv layer with local memory
 // kernel mask: 5x5
@@ -119,7 +101,7 @@ __kernel __attribute__((reqd_work_group_size(CONV_WG_X, CONV_WG_Y, CONV_WG_Z)))
 void conv_local_flatasync(__global DATA_TYPE * in, __global DATA_TYPE * out,
                 __constant DATA_TYPE * weight, __constant DATA_TYPE * biases,
                 const DATA_SHAPE in_width, const DATA_SHAPE in_height,
-                const DATA_SHAPE mask_depth, const DATA_SHAPE mask_size)
+                const DATA_SHAPE mask_depth)
 {
     // tile[TILE_Z][TILE_X][TILE_Y];
     __local DATA_TYPE tile[TILE_X * TILE_Y * TILE_Z];
@@ -144,13 +126,11 @@ void conv_local_flatasync(__global DATA_TYPE * in, __global DATA_TYPE * out,
         wait_group_events(1, &events[e]);
         barrier(CLK_LOCAL_MEM_FENCE);
         for(size_t ch = 0; ch < MASK_SIZE; ++ch)
-        //for(size_t ch = 0; ch < mask_size; ++ch)
         {
             for(size_t cw = 0; cw < MASK_SIZE; ++cw)
-            //for(size_t cw = 0; cw < mask_size; ++cw)
             {
                 c += tile[getIdx3D(e, ch + get_local_id(1), cw + get_local_id(0), TILE_X, TILE_Y)]
-                * weight[cw + (ch + cd * mask_depth) * MASK_SIZE];
+                * weight[cw + (ch + cd * mask_depth) * MASK_SIZE + d * MASK_SIZE * MASK_SIZE * mask_depth];
             }
         }
 
@@ -201,13 +181,13 @@ void conv_local_flatmem(__global DATA_TYPE * in, __global DATA_TYPE * out,
             {
                 c += tile[getIdx2D(ch + get_local_id(1), cw + get_local_id(0), TILE_X)]
                 * weight[cw + (ch + cd * mask_depth) * MASK_SIZE + d * MASK_SIZE * MASK_SIZE * mask_depth];
-//                * weight[cw + (ch + cd * mask_depth) * MASK_SIZE];
             }
         }
     }
     out[out_idx] = relu(c + biases[d]);
     return;
 }
+
 
 // Fully connected layer
 // kernel launch grid based on
@@ -226,6 +206,8 @@ void fully_connected_local(__global DATA_TYPE * in, __global DATA_TYPE * out,
     event_t event = async_work_group_copy(&neuro_cache[0], &in[0], INEURON, 0);
 
     wait_group_events(1, &event); 
+    barrier(CLK_LOCAL_MEM_FENCE);
+
     DATA_TYPE n = 0;
     for(size_t c = 0; c < INEURON; ++c)
     {
@@ -255,29 +237,3 @@ void softmax_layer(__global DATA_TYPE * in, __global DATA_TYPE * out)
     return;
 }
 
-/*
-__kernel  __attribute__((reqd_work_group_size(10, 1, 1)))
-void softmax_layer(__global DATA_TYPE * in, __global DATA_TYPE * out)
-{
-    __local float soft[10];
-    __local float sum_exp;
-
-    size_t i = get_global_id(0);
-    soft[i] = exp(in[i]);
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-    if(get_local_id(0) == 0)
-    {
-        float private_sum = 0.0f;
-        for(size_t j = 0; j < 10; ++j)
-        {
-            private_sum += soft[j];
-        }
-        sum_exp = private_sum;
-    }
-
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-    out[i] = soft[i] / sum_exp;
-    return;
-}*/

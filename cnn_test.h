@@ -21,7 +21,8 @@ class cnn_test
 public:
     cnn_test(xcl_world & world, const char * clFilename,  bool isBinary);
     ~cnn_test();
-    void test();
+    float test();
+    float test_img();
 private:
     std::vector<cl_kernel> kernels;
     xcl_world & test_world;

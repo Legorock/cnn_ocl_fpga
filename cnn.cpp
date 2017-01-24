@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
 
     if(argc != 3 && argc != 4)
     {
-        std::cout << "Usage: " << argv[0] << " <xclbin>" << " <{'test', 'runall <images>', 'run <image>'}>" << std::endl;
+        std::cout << "Usage: " << argv[0] << " <xclbin>" << " <{'test', 'test_img', 'runall <images>', 'run <image>'}>" << std::endl;
 	return -1;
     }
 
@@ -66,7 +66,14 @@ int main(int argc, char ** argv)
     if(exe_mode == "test") 
     {
         cnn_test t(world, xclbinFilename.c_str(), is_binary);
-        t.test();
+        auto test_err = t.test();
+        std::cout << "Test error: " << test_err << std::endl;
+    }
+    else if(exe_mode == "test_img")
+    {
+        cnn_test t(world, xclbinFilename.c_str(), is_binary);
+        auto test_err = t.test_img();
+        std::cout << "Test error: " << test_err << std::endl;
     }
     else if(exe_mode == "runall")
     {
