@@ -15,10 +15,11 @@ template<typename T>
 inline static void print_buf(std::ostream& o, const T *  buf, 
         const std::vector<std::size_t>& dims, const std::size_t curr_dim);
 
-const std::vector<std::string> kernel_names = {"max_pool2", "conv_local_flatmem", "softmax_layer", "fully_connected_local"};
+//const std::vector<std::string> kernel_names = {"max_pool2", "conv_local_flatmem", "softmax_layer", "fully_connected_local"};
 //const std::vector<std::string> kernel_names = {"max_pool2", "conv_layer", "softmax_layer", "fully_connected_local"};
 //const std::vector<std::string> kernel_names = {"max_pool2", "conv_local_flatasync", "softmax_layer", "fully_connected_local"};
-const std::vector<std::string> kernel_layers = {"max_pool", "conv", "fully_connected", "softmax"};
+const std::vector<std::string> kernel_names = {"max_pool2", "conv_local", "softmax_layer", "fc_local"};
+const std::vector<std::string> kernel_layers = {"max_pool", "conv", "fc", "softmax"};
 
 
 static auto absolute = [](const std::vector<float>& seq, const std::vector<float>& ocl)
@@ -90,7 +91,7 @@ inline static krnl_data_map sequential_runs(std::map<std::string, std::vector<Da
             softmax_seq(krnl_data[0].buffer, in_dim, krnl_data[1].buffer);
             //std::cerr << "softmax sequential ends!\n";
         }
-        else if(krnl_name == "fully_connected")
+        else if(krnl_name == "fc")
         {
             //std::cerr << "fc sequential test!\n";
             std::size_t in_dim = krnl_data[0].dims[0];
@@ -144,7 +145,7 @@ inline static std::map<std::string, std::vector<Data>> gen_run_data()
 
             data[krnl_name] = std::vector<Data>({in, out});
         }
-        else if(krnl_name == "fully_connected")
+        else if(krnl_name == "fc")
         {
             Data in, out, w, b;
             in.dims = {512};
@@ -325,20 +326,6 @@ void cnn_test::ocl_conv_run(cl_kernel kernel, std::vector<Data>& data)
     // DEVICE to HOST transfer
     xcl_memcpy_from_device(test_world, data_out.buffer.data(), buf_out, buf_out_size);
     
-    std::cerr << "out\n";
-    for(std::size_t d = 0; d < 5; ++d)
-    {
-        for(std::size_t h = 0; h < 8; ++h)
-        {
-            for(std::size_t w = 0; w < 8; ++w)
-            {
-                auto idx = w + h * 8 + d * 64;
-                std::cerr << data_out.buffer[idx] << '\t';
-            }std::cerr << '\n';
-        }std::cerr << '\n';
-    }std::cerr << '\n';
-
-
     clReleaseMemObject(buf_in);
     clReleaseMemObject(buf_out);
     clReleaseMemObject(buf_w);
@@ -394,15 +381,10 @@ void cnn_test::ocl_fc_run(cl_kernel kernel, std::vector<Data>& data)
     // DEVICE to HOST transfer
     xcl_memcpy_from_device(test_world, data_out.buffer.data(), buf_out, buf_out_size);
 
-    std::cerr << "1\n";
     clReleaseMemObject(buf_in);
-    std::cerr << "2\n";
     clReleaseMemObject(buf_out);
-    std::cerr << "3\n";
     clReleaseMemObject(buf_w);
-    std::cerr << "4\n";
     clReleaseMemObject(buf_b);
-    std::cerr << "5\n";
 }
 
 void cnn_test::ocl_softmax_run(cl_kernel kernel, std::vector<Data>& data)
@@ -464,10 +446,10 @@ krnl_data_map cnn_test::ocl_runs(std::map<std::string, std::vector<Data>>& data)
             ocl_conv_run(kernel, data["conv"]);
             out["conv"] = data["conv"][1];
         }
-        else if(kernel_name.find("fully_connected") != std::string::npos)
+        else if(kernel_name.find("fc") != std::string::npos)
         {
-//            ocl_fc_run(kernel, data["fully_connected"]);
-//            out["fully_connected"] = data["fully_connected"][1];
+            ocl_fc_run(kernel, data["fc"]);
+            out["fc"] = data["fc"][1];
         }
         else if(kernel_name.find("softmax") != std::string::npos)
         {
@@ -531,11 +513,23 @@ float cnn_test::test()
     print_test_results(ocl_test_out, ocl_out, "all");
     ocl_test_out.close();
     
-    return 0.0f;
-//    return diff_data(seq_out, ocl_out, absolute);
+//    return 0.0f;
+    return diff_data(seq_out, ocl_out, absolute);
+}
+
+void cnn_test::seq_img_test(const Data& img)
+{
+   
+}
+
+void cnn_test::ocl_img_test(const Data& img)
+{
+
 }
 
 float cnn_test::test_img()
 {
+    auto img = gen2Data<'w'>(28, 28);
+    std::cout << "test image generated!" << std::endl;
     return 0.0f;
 }

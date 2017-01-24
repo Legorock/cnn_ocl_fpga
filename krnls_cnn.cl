@@ -96,64 +96,12 @@ void conv_layer(__global DATA_TYPE * in, __global DATA_TYPE * out,
 #define TILE_Y (CONV_WG_Y+MASK_SIZE-1)
 #define TILE_Z 2
 
-/*
 __kernel __attribute__((reqd_work_group_size(CONV_WG_X, CONV_WG_Y, CONV_WG_Z)))
-void conv_local_flatasync(__global DATA_TYPE * in, __global DATA_TYPE * out,
+void conv_local(__global DATA_TYPE * in, __global DATA_TYPE * out,
                 __constant DATA_TYPE * weight, __constant DATA_TYPE * biases,
                 const DATA_SHAPE in_width, const DATA_SHAPE in_height,
                 const DATA_SHAPE mask_depth)
 {
-    // tile[TILE_Z][TILE_X][TILE_Y];
-    __local DATA_TYPE tile[TILE_X * TILE_Y * TILE_Z];
-
-    size_t w = get_global_id(0);
-    size_t h = get_global_id(1);
-    size_t d = get_global_id(2);
-    size_t out_width = get_global_size(0);
-    size_t out_height = get_global_size(1);
-
-    event_t events[2];
-    size_t e = 0;
-    size_t in_idx = get_group_id(0) * CONV_WG_X + get_group_id(1) * CONV_WG_Y * in_width;
-    size_t out_idx = w + out_width * (h + out_height * d);
-
-    for(size_t i = 0; i < TILE_Y; ++i)
-        events[e] = async_work_group_copy(&tile[getIdx3D(e, i, 0, TILE_X, TILE_Y)], &in[in_idx + i * in_width], TILE_X, events[e]);
-
-    DATA_TYPE c = (DATA_TYPE)0;
-    for(size_t cd = 0; cd < mask_depth; ++cd)
-    {
-        wait_group_events(1, &events[e]);
-        barrier(CLK_LOCAL_MEM_FENCE);
-        for(size_t ch = 0; ch < MASK_SIZE; ++ch)
-        {
-            for(size_t cw = 0; cw < MASK_SIZE; ++cw)
-            {
-                c += tile[getIdx3D(e, ch + get_local_id(1), cw + get_local_id(0), TILE_X, TILE_Y)]
-                * weight[cw + (ch + cd * mask_depth) * MASK_SIZE + d * MASK_SIZE * MASK_SIZE * mask_depth];
-            }
-        }
-
-        e = (e == 0 ? 1 : 0);
-        if(cd < (mask_depth-1))
-        {
-            in_idx += in_height * in_width;
-            for(size_t i = 0; i < TILE_Y; ++i)
-                events[e] = async_work_group_copy(&tile[getIdx3D(e, i, 0, TILE_X, TILE_Y)], &in[in_idx + i * in_width], TILE_X, events[e]);
-        }
-    }
-    out[out_idx] = relu(c + biases[d]);
-    return;
-}
-*/
-
-__kernel __attribute__((reqd_work_group_size(CONV_WG_X, CONV_WG_Y, CONV_WG_Z)))
-void conv_local_flatmem(__global DATA_TYPE * in, __global DATA_TYPE * out,
-                __constant DATA_TYPE * weight, __constant DATA_TYPE * biases,
-                const DATA_SHAPE in_width, const DATA_SHAPE in_height,
-                const DATA_SHAPE mask_depth)
-{
-    //__local DATA_TYPE tile[TILE_Y][TILE_X];
     __local DATA_TYPE tile[TILE_X * TILE_Y];
 
     size_t w = get_global_id(0);
@@ -175,6 +123,7 @@ void conv_local_flatmem(__global DATA_TYPE * in, __global DATA_TYPE * out,
 
         wait_group_events(1, &event);
         barrier(CLK_LOCAL_MEM_FENCE);
+
         for(size_t ch = 0; ch < MASK_SIZE; ++ch)
         {
             for(size_t cw = 0; cw < MASK_SIZE; ++cw)
@@ -198,7 +147,7 @@ void conv_local_flatmem(__global DATA_TYPE * in, __global DATA_TYPE * out,
 #define N_SYNAPSES (INEURON*ONEURON)
 
 __kernel __attribute__((reqd_work_group_size(ONEURON, 1, 1)))
-void fully_connected_local(__global DATA_TYPE * in, __global DATA_TYPE * out,
+void fc_local(__global DATA_TYPE * in, __global DATA_TYPE * out,
                            __constant DATA_TYPE * weights, __constant DATA_TYPE * biases)
 {
     size_t neuron = get_global_id(0);

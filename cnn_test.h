@@ -7,13 +7,9 @@
 // OpenCL includes
 #include "xcl.h"
 
+#include "DataBlob.h"
 
-struct Data
-{
-    std::vector<float> buffer;
-    std::vector<std::size_t> dims;
-};
-
+typedef DataBlob<float> Data;
 typedef std::map<std::string, Data> krnl_data_map;
 
 class cnn_test
@@ -32,4 +28,8 @@ private:
     void ocl_conv_run(cl_kernel kernel, std::vector<Data>& data);
     void ocl_fc_run(cl_kernel kernel, std::vector<Data>& data);
     void ocl_softmax_run(cl_kernel kernel, std::vector<Data>& data);
+
+    void seq_img_test(const Data& img);
+    void ocl_img_test(const Data& img);
+    
 };

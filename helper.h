@@ -1,9 +1,11 @@
 #pragma once
 
 #include "xcl.h"
+#include "DataBlob.h"
 
 #include <string>
 #include <vector>
+#include <map>
 
 std::string get_kernel_name(cl_kernel k);
 
@@ -13,5 +15,4 @@ double launch_kernel(xcl_world world, cl_kernel kernel, size_t global[3], size_t
 
 std::vector<cl_kernel> get_kernels_binary(xcl_world world, const char * bin_name,
                                           const std::vector<std::string> & kernel_names);
-
 

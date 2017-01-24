@@ -1,11 +1,8 @@
 #include "helper.h"
 
-
-
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
-
 
 static void* smalloc(size_t size) 
 {
@@ -155,3 +152,5 @@ std::string get_kernel_name(cl_kernel k)
     }
     return kname;
 }
+
+

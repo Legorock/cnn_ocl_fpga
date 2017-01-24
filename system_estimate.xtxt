@@ -5,7 +5,7 @@ Copyright:  Copyright 1986-2016 Xilinx, Inc. All Rights Reserved.
 ===============================================================================
 
 -------------------------------------------------------------------------------
-Design Name:      _xocc_krnls_cnn_bin_cnn_hw.dir
+Design Name:      _xocc_compile_krnls_cnn_bin.dir
 Target Device:    xilinx:adm-pcie-ku3:2ddr:3.0
 Target Clock:     250MHz
 -------------------------------------------------------------------------------
@@ -13,22 +13,21 @@ Target Clock:     250MHz
 -------------------------------------------------------------------------------
 Kernel Summary
 
-Total number of kernels: 6
+Total number of kernels: 5
 
 +-----------------------+------------+----------------------+-----------------+---------------+
 | Kernel Name           | Type       | Target               | OpenCL Library  | Compute Units |
 +-----------------------+------------+----------------------+-----------------+---------------+
-| fully_connected_local | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 6             |
-| conv_local_flatmem    | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 6             |
-| conv_local_flatasync  | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 6             |
-| conv_layer            | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 6             |
-| softmax_layer         | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 6             |
-| max_pool2             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 6             |
+| fc_local              | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 5             |
+| softmax_layer         | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 5             |
+| conv_layer            | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 5             |
+| conv_local            | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 5             |
+| max_pool2             | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 5             |
 +-----------------------+------------+----------------------+-----------------+---------------+
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
-OpenCL Binary = bin_cnn_hw
+OpenCL Binary = xcl_xocc
 
 Kernels mapped to = clc_region
 
@@ -38,10 +37,9 @@ Timing Information (MHz)
 +----------------------+-------------------------+-------------------------+-------------------------+
 | softmax_layer_1      | softmax_layer           | 250                     | 342.466                 |
 | max_pool2_1          | max_pool2               | 250                     | 342.466                 |
-| conv_local_flatasync_1| conv_local_flatasync   | 250                     | 311.526                 |
-| conv_layer_1         | conv_layer              | 250                     | 342.466                 |
-| conv_local_flatmem_1 | conv_local_flatmem      | 250                     | 311.526                 |
-| fully_connected_local_1| fully_connected_local | 250                     | 342.466                 |
+| conv_local_1         | conv_local              | 250                     | 283.286                 |
+| conv_layer_1         | conv_layer              | 250                     | 336.7                   |
+| fc_local_1           | fc_local                | 250                     | 342.466                 |
 +----------------------+-------------------------+-------------------------+-------------------------+
 
 Latency Information (clock cycles)
@@ -49,11 +47,10 @@ Latency Information (clock cycles)
 | Compute Unit         | Kernel Name          | Start Interval       | Best Case            | Avg Case             | Worst Case           |
 +----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
 | softmax_layer_1      | softmax_layer        | 429                  | 428                  | 428                  | 428                  |
-| max_pool2_1          | max_pool2            | 221                  | 220                  | 220                  | 220                  |
-| conv_local_flatasync_1| conv_local_flatasync| undef                | undef                | undef                | undef                |
+| max_pool2_1          | max_pool2            | 557                  | 556                  | 556                  | 556                  |
+| conv_local_1         | conv_local           | undef                | undef                | undef                | undef                |
 | conv_layer_1         | conv_layer           | undef                | undef                | undef                | undef                |
-| conv_local_flatmem_1 | conv_local_flatmem   | undef                | undef                | undef                | undef                |
-| fully_connected_local_1| fully_connected_local| 1311922            | 1311921              | 1311921              | 1311921              |
+| fc_local_1           | fc_local             | 328690               | 328689               | 328689               | 328689               |
 +----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
 
 Area Information
@@ -61,10 +58,9 @@ Area Information
 | Compute Unit         | Kernel Name          | FF         | LUT        | DSP        | BRAM       |
 +----------------------+----------------------+------------+------------+------------+------------+
 | softmax_layer_1      | softmax_layer        | 3027       | 3865       | 9          | 2          |
-| max_pool2_1          | max_pool2            | 1986       | 2290       | 16         | 2          |
-| conv_local_flatasync_1| conv_local_flatasync| 17368      | 15358      | 33         | 10         |
-| conv_layer_1         | conv_layer           | 5775       | 5962       | 52         | 2          |
-| conv_local_flatmem_1 | conv_local_flatmem   | 15391      | 13937      | 33         | 9          |
-| fully_connected_local_1| fully_connected_local| 2870     | 2963       | 5          | 4          |
+| max_pool2_1          | max_pool2            | 3633       | 4258       | 32         | 2          |
+| conv_local_1         | conv_local           | 13865      | 13625      | 31         | 9          |
+| conv_layer_1         | conv_layer           | 5868       | 6048       | 55         | 2          |
+| fc_local_1           | fc_local             | 2858       | 2939       | 5          | 4          |
 +----------------------+----------------------+------------+------------+------------+------------+
 -------------------------------------------------------------------------------

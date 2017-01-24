@@ -1,4 +1,6 @@
 
+lenet_data
+
 # Xilinx FPGA temporaries
 *.xclbin
 _xocc_*
