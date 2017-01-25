@@ -83,6 +83,11 @@ int main(int argc, char ** argv)
     {
     
     }
+    else
+    {
+        std::cerr << "Unknown execution mod!\n";
+        return -1;   
+    }
 
     xcl_release_world(world);
     return 0;

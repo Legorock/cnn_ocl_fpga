@@ -10,3 +10,4 @@ struct DataBlob
 
     typedef T DataType;
 };
+

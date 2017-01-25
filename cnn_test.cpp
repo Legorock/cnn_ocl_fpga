@@ -8,6 +8,8 @@
 #include "genData.h"
 #include "seq.h"
 
+#include "ModelImporter.h"
+
 #include "oclHelper.h"
 #include "helper.h"
 
@@ -517,19 +519,38 @@ float cnn_test::test()
     return diff_data(seq_out, ocl_out, absolute);
 }
 
-void cnn_test::seq_img_test(const Data& img)
+Data cnn_test::seq_img_test(const Data& img)
 {
-   
+    std::cerr << "Sequential Run Model Data Loading!\n";
+    ModelImporter m_import("lenet_data/nn_model.csv");
+    std::cerr << "Sequential Run Model Data Loaded!\n";
+    auto wc1 = m_import.get_buffer("wc1"); // Conv1 weights
+    auto bc1 = m_import.get_buffer("bc1"); // Conv1 biases
+    auto wc2 = m_import.get_buffer("wc2"); // Conv2 weights
+    auto bc2 = m_import.get_buffer("bc2"); // Conv2 biases
+    auto wd1 = m_import.get_buffer("wd1"); // FullyConn. (dense) weights
+    auto bd1 = m_import.get_buffer("bd1"); // FullyConn. (dense) biases
+    auto wdo = m_import.get_buffer("wdo"); // FullyConn. out (dense) weights
+    auto bdo = m_import.get_buffer("bdo"); // FullyConn. out (dense) biases
+    std::cerr << "Sequential Run Model Weights and Biases are Extracted!\n";
+
+
+    return img; // Placeholder
 }
 
-void cnn_test::ocl_img_test(const Data& img)
+Data cnn_test::ocl_img_test(const Data& img)
 {
-
+    return img; // Placeholder
 }
 
 float cnn_test::test_img()
 {
-    auto img = gen2Data<'w'>(28, 28);
+    Data img;
+    img.buffer = gen2Data<'w'>(28, 28);
+    img.dims = std::vector<std::size_t>({28, 28});
     std::cout << "test image generated!" << std::endl;
+
+    auto seq_out = seq_img_test(img);
+
     return 0.0f;
 }

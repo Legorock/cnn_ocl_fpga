@@ -29,7 +29,7 @@ private:
     void ocl_fc_run(cl_kernel kernel, std::vector<Data>& data);
     void ocl_softmax_run(cl_kernel kernel, std::vector<Data>& data);
 
-    void seq_img_test(const Data& img);
-    void ocl_img_test(const Data& img);
+    Data seq_img_test(const Data& img);
+    Data ocl_img_test(const Data& img);
     
 };
