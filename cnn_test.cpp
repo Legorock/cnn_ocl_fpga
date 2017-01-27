@@ -4,11 +4,14 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 
 #include "genData.h"
+#include "clDataBlob.h"
 #include "seq.h"
 
 #include "ModelImporter.h"
+#include "mnist_test_img.h"
 
 #include "oclHelper.h"
 #include "helper.h"
@@ -56,6 +59,17 @@ inline static float diff_data(const krnl_data_map & seq, const krnl_data_map & o
         diff += method(seq_buffer, ocl_buffer);
     }
     return diff;
+}
+
+inline static Data getTestImg()
+{
+    Data im = emptyDataBlob<float>({28, 28, 1});
+    
+    for(std::size_t i = 0; i < 28 * 28; ++i)
+    {
+        im.buffer[i] = static_cast<float>(mnist_test::img[i]);
+    }
+    return im;
 }
 
 inline static krnl_data_map sequential_runs(std::map<std::string, std::vector<Data>>& data)
@@ -521,9 +535,8 @@ float cnn_test::test()
 
 Data cnn_test::seq_img_test(const Data& img)
 {
-    std::cerr << "Sequential Run Model Data Loading!\n";
     ModelImporter m_import("lenet_data/nn_model.csv");
-    std::cerr << "Sequential Run Model Data Loaded!\n";
+    std::cout << "Sequential Run Model Data Loaded!\n";
     auto wc1 = m_import.get_buffer("wc1"); // Conv1 weights
     auto bc1 = m_import.get_buffer("bc1"); // Conv1 biases
     auto wc2 = m_import.get_buffer("wc2"); // Conv2 weights
@@ -532,25 +545,166 @@ Data cnn_test::seq_img_test(const Data& img)
     auto bd1 = m_import.get_buffer("bd1"); // FullyConn. (dense) biases
     auto wdo = m_import.get_buffer("wdo"); // FullyConn. out (dense) weights
     auto bdo = m_import.get_buffer("bdo"); // FullyConn. out (dense) biases
-    std::cerr << "Sequential Run Model Weights and Biases are Extracted!\n";
+    std::cout << "Sequential Run Model Weights and Biases are Extracted!\n";
+    
+    Data conv1_out = emptyDataBlob<float>({24, 24, 32});
+    Data pool1_out = emptyDataBlob<float>({12, 12, 32});
+    Data conv2_out = emptyDataBlob<float>({8, 8, 64});
+    Data pool2_out = emptyDataBlob<float>({4, 4, 64});
+    Data dens1_out = emptyDataBlob<float>({256});
+    Data class_out = emptyDataBlob<float>({10}); 
+    std::cout << "Intermediate data created!" << std::endl;
 
+    conv_seq(img.buffer, img.dims.data(),
+             conv1_out.buffer, conv1_out.dims.data(),
+             wc1.buffer, bc1.buffer);
+    max_pool2_seq(conv1_out.buffer, conv1_out.dims.data(),
+              pool1_out.buffer, pool1_out.dims.data());
+    conv_seq(pool1_out.buffer, pool1_out.dims.data(),
+             conv2_out.buffer, conv2_out.dims.data(),
+             wc2.buffer, bc2.buffer);
+    max_pool2_seq(conv2_out.buffer, conv2_out.dims.data(),
+                  pool2_out.buffer, pool2_out.dims.data());
+    fc_seq(pool2_out.buffer, (pool2_out.dims[0]*pool2_out.dims[1]*pool2_out.dims[2]),
+           dens1_out.buffer, dens1_out.dims[0],
+           wd1.buffer, bd1.buffer);
+    fc_seq(dens1_out.buffer, dens1_out.dims[0],
+           class_out.buffer, class_out.dims[0],
+           wdo.buffer, bdo.buffer);
+    softmax_seq(class_out.buffer, class_out.dims[0], class_out.buffer);
 
-    return img; // Placeholder
+    std::size_t class_no = 0;
+    std::cout << std::fixed << std::setprecision(3);
+    for(auto c : class_out.buffer)
+    {
+        ++class_no;
+        std::cout << "Number: " << class_no << "\t\t\t Confidence: %" << c * 100 << '\n';
+    }
+    std::cout << std::scientific << std::setprecision(6) << std::endl;
+
+    return class_out;
+//    return img; // Placeholder
 }
 
-Data cnn_test::ocl_img_test(const Data& img)
+Data cnn_test::ocl_img_test(Data& img)
 {
-    return img; // Placeholder
+    cl_kernel conv = get_kernel_from_vec(kernels, "conv_local");
+    auto conv_reqd_wg = get_kernel_reqd_wg_size(conv, test_world.device_id);
+    cl_kernel maxp = get_kernel_from_vec(kernels, "max_pool2");
+    auto maxp_reqd_wg = get_kernel_reqd_wg_size(maxp, test_world.device_id);
+    cl_kernel fc = get_kernel_from_vec(kernels, "fc_local");
+    auto fc_reqd_wg = get_kernel_reqd_wg_size(fc, test_world.device_id);
+    cl_kernel softmax = get_kernel_from_vec(kernels, "softmax_layer");
+    auto softmax_reqd_wg = get_kernel_reqd_wg_size(softmax, test_world.device_id);
+
+    auto cl_img = data_host_to_device(test_world, CL_MEM_READ_ONLY, img);
+
+    ModelImporter m_import("lenet_data/nn_model.csv");
+    std::cout << "OpenCL Run Model Data Loaded!\n";
+    auto wc1 = m_import.get_buffer("wc1"); // Conv1 weights
+    auto bc1 = m_import.get_buffer("bc1"); // Conv1 biases
+    auto wc2 = m_import.get_buffer("wc2"); // Conv2 weights
+    auto bc2 = m_import.get_buffer("bc2"); // Conv2 biases
+    auto wd1 = m_import.get_buffer("wd1"); // FullyConn. (dense) weights
+    auto bd1 = m_import.get_buffer("bd1"); // FullyConn. (dense) biases
+    auto wdo = m_import.get_buffer("wdo"); // FullyConn. out (dense) weights
+    auto bdo = m_import.get_buffer("bdo"); // FullyConn. out (dense) biases
+     
+    auto cl_wc1 = data_host_to_device(test_world, CL_MEM_READ_ONLY, wc1);
+    auto cl_bc1 = data_host_to_device(test_world, CL_MEM_READ_ONLY, bc1);
+    auto cl_wc2 = data_host_to_device(test_world, CL_MEM_READ_ONLY, wc2);
+    auto cl_bc2 = data_host_to_device(test_world, CL_MEM_READ_ONLY, bc2);
+    auto cl_wd1 = data_host_to_device(test_world, CL_MEM_READ_ONLY, wd1);
+    auto cl_bd1 = data_host_to_device(test_world, CL_MEM_READ_ONLY, bd1);
+    auto cl_wdo = data_host_to_device(test_world, CL_MEM_READ_ONLY, bc1);
+    auto cl_bdo = data_host_to_device(test_world, CL_MEM_READ_ONLY, bdo);
+    std::cout << "OpenCL Run Model Weights and Biases are Extracted!\n";
+
+    auto conv1_out = emptyClDataBlob<float>(test_world, {24, 24, 32}, CL_MEM_READ_WRITE);
+    auto pool1_out = emptyClDataBlob<float>(test_world, {12, 12, 32}, CL_MEM_READ_WRITE);
+    auto conv2_out = emptyClDataBlob<float>(test_world, {8, 8, 64}, CL_MEM_READ_WRITE);
+    auto pool2_out = emptyClDataBlob<float>(test_world, {4, 4, 64}, CL_MEM_READ_WRITE);
+    auto dens1_out = emptyClDataBlob<float>(test_world, {256}, CL_MEM_READ_WRITE);
+    auto class_out = emptyClDataBlob<float>(test_world, {10}, CL_MEM_WRITE_ONLY); 
+    std::cout << "Intermediate data created!" << std::endl;
+
+    cl_uchar conv1_in_width   = static_cast<cl_uchar>(cl_img.dims[0]);
+    cl_uchar conv1_in_height  = static_cast<cl_uchar>(cl_img.dims[1]);
+    cl_uchar conv1_mask_depth = static_cast<cl_uchar>(cl_img.dims[2]);
+    cl_uchar conv2_in_width   = static_cast<cl_uchar>(pool1_out.dims[0]);
+    cl_uchar conv2_in_height  = static_cast<cl_uchar>(pool1_out.dims[1]);
+    cl_uchar conv2_mask_depth = static_cast<cl_uchar>(pool1_out.dims[2]);
+
+    cl_int err = CL_SUCCESS;
+    err |= clSetKernelArg(conv, 0, sizeof(cl_mem), &cl_img.buffer); 
+    err |= clSetKernelArg(conv, 1, sizeof(cl_mem), &conv1_out.buffer);
+    err |= clSetKernelArg(conv, 2, sizeof(cl_mem), &cl_wc1.buffer);
+    err |= clSetKernelArg(conv, 3, sizeof(cl_mem), &cl_bc1.buffer);
+    err |= clSetKernelArg(conv, 4, sizeof(cl_uchar), &conv1_in_width);
+    err |= clSetKernelArg(conv, 5, sizeof(cl_uchar), &conv1_in_height);
+    err |= clSetKernelArg(conv, 6, sizeof(cl_uchar), &conv1_mask_depth);
+
+    size_t global[3] = {24, 24, 32};
+    auto t_conv1 = launch_kernel(test_world, conv, global, conv_reqd_wg.data());
+     
+    err |= clSetKernelArg(maxp, 0, sizeof(cl_mem), &conv1_out.buffer);
+    err |= clSetKernelArg(maxp, 1, sizeof(cl_mem), &pool1_out.buffer);
+
+    global[0] = 12; global[1] = 12; global[2] = 32;
+    auto t_pool1 = launch_kernel(test_world, maxp, global, maxp_reqd_wg.data());
+
+    err |= clSetKernelArg(conv, 0, sizeof(cl_mem), &pool1_out.buffer);
+    err |= clSetKernelArg(conv, 1, sizeof(cl_mem), &conv1_out.buffer);
+    err |= clSetKernelArg(conv, 2, sizeof(cl_mem), &cl_wc2.buffer);
+    err |= clSetKernelArg(conv, 3, sizeof(cl_mem), &cl_bc2.buffer);
+    err |= clSetKernelArg(conv, 4, sizeof(cl_uchar), &conv2_in_width);
+    err |= clSetKernelArg(conv, 5, sizeof(cl_uchar), &conv2_in_height);
+    err |= clSetKernelArg(conv, 6, sizeof(cl_uchar), &conv2_mask_depth);
+
+    global[0] = 8; global[1] = 8; global[2] = 64;
+    auto t_conv2 = launch_kernel(test_world, conv, global, conv_reqd_wg.data());
+
+    err |= clSetKernelArg(maxp, 0, sizeof(cl_mem), &conv2_out.buffer);
+    err |= clSetKernelArg(maxp, 1, sizeof(cl_mem), &pool2_out.buffer);
+
+    global[0] = 4; global[1] = 4; global[2] = 64;
+    auto t_pool2 = launch_kernel(test_world, maxp, global, maxp_reqd_wg.data());
+
+    auto cnn_outs = data_device_to_host(test_world, class_out);
+
+    std::size_t class_no = 0;
+    std::cout << std::fixed << std::setprecision(3);
+    for(auto c : cnn_outs.buffer)
+    {
+        ++class_no;
+        std::cout << "Number: " << class_no << "\t\t\t Confidence: %" << c * 100 << '\n';
+    }
+    std::cout << std::scientific << std::setprecision(6) << std::endl;
+
+    clReleaseMemObject(cl_img.buffer);
+    clReleaseMemObject(cl_wc1.buffer);
+    clReleaseMemObject(cl_bc1.buffer);
+    clReleaseMemObject(cl_wc2.buffer);
+    clReleaseMemObject(cl_bc2.buffer);
+    clReleaseMemObject(cl_wd1.buffer);
+    clReleaseMemObject(cl_bd1.buffer);
+    clReleaseMemObject(cl_wdo.buffer);
+    clReleaseMemObject(cl_bdo.buffer);
+    return cnn_outs;
+//    return img; // Placeholder
 }
+
 
 float cnn_test::test_img()
 {
-    Data img;
-    img.buffer = gen2Data<'w'>(28, 28);
-    img.dims = std::vector<std::size_t>({28, 28});
+//    Data img;
+//    img.buffer = gen2Data<'w'>(28, 28);
+//    img.dims = std::vector<std::size_t>({28, 28, 1});
+    Data img = getTestImg();
     std::cout << "test image generated!" << std::endl;
 
     auto seq_out = seq_img_test(img);
+    auto ocl_out = ocl_img_test(img);
 
     return 0.0f;
 }

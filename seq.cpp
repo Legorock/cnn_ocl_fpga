@@ -70,7 +70,7 @@ void conv_seq(const std::vector<float>& in,      const std::size_t in_dims[3],
                     for(num kh = 0; kh < 5 ; ++kh)
                     {
                         for(num kw = 0; kw < 5; ++kw)
-                        {
+                        {  
                             conv += in[idx + index2(kw, kh, in_dims[0])] * 
                                         weights[widx + index2(kw, kh, 5)];
                         }

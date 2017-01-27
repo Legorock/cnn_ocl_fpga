@@ -126,6 +126,8 @@ std::vector<size_t> get_kernel_reqd_wg_size(cl_kernel k, cl_device_id d)
     if(err != CL_SUCCESS)
     {
         std::cerr << "clGetKernelWorkGroupInfo failed getting compile work group size!\n";
+        std::cerr << "Error Code: " << err << '\n';
+        std::cerr << "Name of the problematic kernel: " << get_kernel_name(k) << '\n';
         exit(EXIT_FAILURE);
     }
     return std::vector<size_t>{wg[0], wg[1], wg[2]};
@@ -153,4 +155,32 @@ std::string get_kernel_name(cl_kernel k)
     return kname;
 }
 
+std::map<std::string, cl_kernel> get_kernel_map(const std::vector<cl_kernel>& kernel_vec)
+{
+    std::map<std::string, cl_kernel> kernel_map;
+    for(auto & k : kernel_vec)
+    {
+        auto kernel_name = get_kernel_name(k);
+        kernel_map.insert(std::make_pair(kernel_name, k));
+        //kernel_map[kernel_name] = k;
+    }
+    return kernel_map;
+}
+
+cl_kernel get_kernel_from_vec(const std::vector<cl_kernel>& kernels, const std::string & name)
+{
+    for(auto k : kernels)
+    {
+        auto kname = get_kernel_name(k);
+//        if(kname == name)
+        if(kname.find(name) != std::string::npos)
+        {
+            return k;
+        }
+    }
+
+    std::cerr << "the kernel doesn't exist in the kernels(vector)!\n";
+    std::exit(EXIT_FAILURE);
+    return nullptr;
+}
 

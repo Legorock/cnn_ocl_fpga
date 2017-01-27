@@ -30,6 +30,6 @@ private:
     void ocl_softmax_run(cl_kernel kernel, std::vector<Data>& data);
 
     Data seq_img_test(const Data& img);
-    Data ocl_img_test(const Data& img);
+    Data ocl_img_test(Data& img);
     
 };
