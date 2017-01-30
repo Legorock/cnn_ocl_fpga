@@ -43,6 +43,6 @@ DataBlob<T> data_device_to_host(xcl_world world, clDataBlob<T> & blob)
     {
         tot_size *= size;
     }
-    xcl_memcpy_from_device(world, host_data.buffer.data(), blob.buffer, tot_size);
+    xcl_memcpy_from_device(world, host_data.buffer.data(), blob.buffer, tot_size * sizeof(T));
     return host_data;
 }

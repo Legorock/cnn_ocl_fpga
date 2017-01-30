@@ -47,6 +47,7 @@ void max_pool2(__global DATA_TYPE * in, __global DATA_TYPE * out)
     return;
 }
 
+/*
 // Conv layer with
 // kernel mask: 5x5
 // stride: 1
@@ -73,7 +74,7 @@ void conv_layer(__global DATA_TYPE * in, __global DATA_TYPE * out,
             for(size_t cw = 0; cw < 5; ++cw)
             {
                 c += in[in_idx + cw + (ch + cd * in_height) * in_width]
-                * weight[cw + (ch + cd * mask_depth) * 5 + d * 5 * 5  * mask_depth];
+                * weight[cw + (ch + cd * 5) * 5 + d * 5 * 5  * mask_depth];
             }
         }
     }
@@ -81,6 +82,7 @@ void conv_layer(__global DATA_TYPE * in, __global DATA_TYPE * out,
     out[out_idx] = c + biases[d];
     return;
 }
+*/
 
 // Conv layer with local memory
 // kernel mask: 5x5
@@ -94,7 +96,6 @@ void conv_layer(__global DATA_TYPE * in, __global DATA_TYPE * out,
 
 #define TILE_X (CONV_WG_X+MASK_SIZE-1)
 #define TILE_Y (CONV_WG_Y+MASK_SIZE-1)
-#define TILE_Z 2
 
 __kernel __attribute__((reqd_work_group_size(CONV_WG_X, CONV_WG_Y, CONV_WG_Z)))
 void conv_local(__global DATA_TYPE * in, __global DATA_TYPE * out,
@@ -129,7 +130,7 @@ void conv_local(__global DATA_TYPE * in, __global DATA_TYPE * out,
             for(size_t cw = 0; cw < MASK_SIZE; ++cw)
             {
                 c += tile[getIdx2D(ch + get_local_id(1), cw + get_local_id(0), TILE_X)]
-                * weight[cw + (ch + cd * mask_depth) * MASK_SIZE + d * MASK_SIZE * MASK_SIZE * mask_depth];
+                * weight[cw + (ch + cd * MASK_SIZE) * MASK_SIZE + d * MASK_SIZE * MASK_SIZE * mask_depth];
             }
         }
     }
@@ -142,6 +143,7 @@ void conv_local(__global DATA_TYPE * in, __global DATA_TYPE * out,
 // kernel launch grid based on
 // number of output neuron
 
+/*
 #define INEURON 512 // num of input neuron
 #define ONEURON 64  // num of output neuron for a work-group!
 #define N_SYNAPSES (INEURON*ONEURON)
@@ -165,7 +167,22 @@ void fc_local(__global DATA_TYPE * in, __global DATA_TYPE * out,
     out[neuron] = relu(n + biases[neuron]);
     return;
 }
+*/
 
+__kernel __attribute__((reqd_work_group_size(2, 1, 1)))
+void fc(__global DATA_TYPE * in, __global DATA_TYPE * out,
+        __constant DATA_TYPE * weights, __constant DATA_TYPE * biases, 
+        const ushort in_neuron)
+{
+    size_t neuron = get_global_id(0);
+    DATA_TYPE n = 0;
+    for(size_t c = 0; c < in_neuron; ++c)
+    {
+        n += in[c] * weights[neuron * in_neuron + c];
+    }
+    out[neuron] = relu(n + biases[neuron]);
+    return;
+}
 
 __kernel  __attribute__((reqd_work_group_size(1, 1, 1)))
 void softmax_layer(__global DATA_TYPE * in, __global DATA_TYPE * out)

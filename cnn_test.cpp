@@ -13,7 +13,6 @@
 #include "ModelImporter.h"
 #include "mnist_test_img.h"
 
-#include "oclHelper.h"
 #include "helper.h"
 
 template<typename T>
@@ -23,7 +22,8 @@ inline static void print_buf(std::ostream& o, const T *  buf,
 //const std::vector<std::string> kernel_names = {"max_pool2", "conv_local_flatmem", "softmax_layer", "fully_connected_local"};
 //const std::vector<std::string> kernel_names = {"max_pool2", "conv_layer", "softmax_layer", "fully_connected_local"};
 //const std::vector<std::string> kernel_names = {"max_pool2", "conv_local_flatasync", "softmax_layer", "fully_connected_local"};
-const std::vector<std::string> kernel_names = {"max_pool2", "conv_local", "softmax_layer", "fc_local"};
+//const std::vector<std::string> kernel_names = {"max_pool2", "conv_local", "softmax_layer", "fc_local"};
+const std::vector<std::string> kernel_names = {"max_pool2", "conv_local", "softmax_layer", "fc"};
 const std::vector<std::string> kernel_layers = {"max_pool", "conv", "fc", "softmax"};
 
 
@@ -140,8 +140,9 @@ inline static std::map<std::string, std::vector<Data>> gen_run_data()
         else if(krnl_name == "conv")
         {
             Data in, out, w, b;
-            in.dims = {12, 12, 1};
-            out.dims = {in.dims[0]-4, in.dims[1]-4, 32};
+            in.dims = {12, 12, 2};
+            //out.dims = {in.dims[0]-4, in.dims[1]-4, 32};
+            out.dims = {in.dims[0]-4, in.dims[1]-4, 4};
             w.dims = {5 * 5 * in.dims[2] * out.dims[2]};
             b.dims = {out.dims[2]};
             in.buffer = gen3Data<'w'>(in.dims[0], in.dims[1], in.dims[2]);
@@ -370,11 +371,14 @@ void cnn_test::ocl_fc_run(cl_kernel kernel, std::vector<Data>& data)
     xcl_memcpy_to_device(test_world, buf_w, data_weight.buffer.data(), buf_w_size);
     xcl_memcpy_to_device(test_world, buf_b, data_biases.buffer.data(), buf_b_size);
 
+    cl_ushort in_neuron = static_cast<cl_ushort>(data[0].dims[0]);
+
     cl_int err = CL_SUCCESS;
     err |= clSetKernelArg(kernel, 0, sizeof(cl_mem), &buf_in);
     err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &buf_out);
     err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &buf_w);
     err |= clSetKernelArg(kernel, 3, sizeof(cl_mem), &buf_b);
+    err |= clSetKernelArg(kernel, 4, sizeof(cl_ushort), &in_neuron); 
     if(err != CL_SUCCESS)
     {
         std::cerr << "One of the clSetKernelArg failed!\n";
@@ -383,7 +387,7 @@ void cnn_test::ocl_fc_run(cl_kernel kernel, std::vector<Data>& data)
 
     auto reqd_wg_size = get_kernel_reqd_wg_size(kernel, test_world.device_id);
 
-    size_t global[3] = {data[0].dims[0], 1, 1};
+    size_t global[3] = {data[1].dims[0], 1, 1};
     size_t local[3] = {reqd_wg_size[0], reqd_wg_size[1], reqd_wg_size[2]};
     std::cout << "global: " << global[0] << '\t' << global[1] << '\t' << global[2] << '\n';
     std::cout << "local: " << local[0] << '\t' << local[1] << '\t' << local[2] << std::endl;
@@ -558,19 +562,35 @@ Data cnn_test::seq_img_test(const Data& img)
     conv_seq(img.buffer, img.dims.data(),
              conv1_out.buffer, conv1_out.dims.data(),
              wc1.buffer, bc1.buffer);
+
     max_pool2_seq(conv1_out.buffer, conv1_out.dims.data(),
               pool1_out.buffer, pool1_out.dims.data());
+
     conv_seq(pool1_out.buffer, pool1_out.dims.data(),
              conv2_out.buffer, conv2_out.dims.data(),
              wc2.buffer, bc2.buffer);
+
     max_pool2_seq(conv2_out.buffer, conv2_out.dims.data(),
                   pool2_out.buffer, pool2_out.dims.data());
+
     fc_seq(pool2_out.buffer, (pool2_out.dims[0]*pool2_out.dims[1]*pool2_out.dims[2]),
            dens1_out.buffer, dens1_out.dims[0],
            wd1.buffer, bd1.buffer);
+
     fc_seq(dens1_out.buffer, dens1_out.dims[0],
            class_out.buffer, class_out.dims[0],
            wdo.buffer, bdo.buffer);
+
+    auto s = 0.0f;
+    for(auto d_out : class_out.buffer) s += d_out;
+    std::cerr << "fc2 output summed: " << s << '\n';
+
+    for(auto cpu_out : class_out.buffer)
+    {
+        std::cerr << cpu_out << '\n';
+    }
+
+    
     softmax_seq(class_out.buffer, class_out.dims[0], class_out.buffer);
 
     std::size_t class_no = 0;
@@ -592,7 +612,7 @@ Data cnn_test::ocl_img_test(Data& img)
     auto conv_reqd_wg = get_kernel_reqd_wg_size(conv, test_world.device_id);
     cl_kernel maxp = get_kernel_from_vec(kernels, "max_pool2");
     auto maxp_reqd_wg = get_kernel_reqd_wg_size(maxp, test_world.device_id);
-    cl_kernel fc = get_kernel_from_vec(kernels, "fc_local");
+    cl_kernel fc = get_kernel_from_vec(kernels, "fc");
     auto fc_reqd_wg = get_kernel_reqd_wg_size(fc, test_world.device_id);
     cl_kernel softmax = get_kernel_from_vec(kernels, "softmax_layer");
     auto softmax_reqd_wg = get_kernel_reqd_wg_size(softmax, test_world.device_id);
@@ -616,7 +636,7 @@ Data cnn_test::ocl_img_test(Data& img)
     auto cl_bc2 = data_host_to_device(test_world, CL_MEM_READ_ONLY, bc2);
     auto cl_wd1 = data_host_to_device(test_world, CL_MEM_READ_ONLY, wd1);
     auto cl_bd1 = data_host_to_device(test_world, CL_MEM_READ_ONLY, bd1);
-    auto cl_wdo = data_host_to_device(test_world, CL_MEM_READ_ONLY, bc1);
+    auto cl_wdo = data_host_to_device(test_world, CL_MEM_READ_ONLY, wdo);
     auto cl_bdo = data_host_to_device(test_world, CL_MEM_READ_ONLY, bdo);
     std::cout << "OpenCL Run Model Weights and Biases are Extracted!\n";
 
@@ -625,7 +645,8 @@ Data cnn_test::ocl_img_test(Data& img)
     auto conv2_out = emptyClDataBlob<float>(test_world, {8, 8, 64}, CL_MEM_READ_WRITE);
     auto pool2_out = emptyClDataBlob<float>(test_world, {4, 4, 64}, CL_MEM_READ_WRITE);
     auto dens1_out = emptyClDataBlob<float>(test_world, {256}, CL_MEM_READ_WRITE);
-    auto class_out = emptyClDataBlob<float>(test_world, {10}, CL_MEM_WRITE_ONLY); 
+    auto class_out = emptyClDataBlob<float>(test_world, {10}, CL_MEM_READ_WRITE);
+    auto softm_out = emptyClDataBlob<float>(test_world, {10}, CL_MEM_WRITE_ONLY);
     std::cout << "Intermediate data created!" << std::endl;
 
     cl_uchar conv1_in_width   = static_cast<cl_uchar>(cl_img.dims[0]);
@@ -644,6 +665,7 @@ Data cnn_test::ocl_img_test(Data& img)
     err |= clSetKernelArg(conv, 5, sizeof(cl_uchar), &conv1_in_height);
     err |= clSetKernelArg(conv, 6, sizeof(cl_uchar), &conv1_mask_depth);
 
+
     size_t global[3] = {24, 24, 32};
     auto t_conv1 = launch_kernel(test_world, conv, global, conv_reqd_wg.data());
      
@@ -654,7 +676,7 @@ Data cnn_test::ocl_img_test(Data& img)
     auto t_pool1 = launch_kernel(test_world, maxp, global, maxp_reqd_wg.data());
 
     err |= clSetKernelArg(conv, 0, sizeof(cl_mem), &pool1_out.buffer);
-    err |= clSetKernelArg(conv, 1, sizeof(cl_mem), &conv1_out.buffer);
+    err |= clSetKernelArg(conv, 1, sizeof(cl_mem), &conv2_out.buffer);
     err |= clSetKernelArg(conv, 2, sizeof(cl_mem), &cl_wc2.buffer);
     err |= clSetKernelArg(conv, 3, sizeof(cl_mem), &cl_bc2.buffer);
     err |= clSetKernelArg(conv, 4, sizeof(cl_uchar), &conv2_in_width);
@@ -670,7 +692,51 @@ Data cnn_test::ocl_img_test(Data& img)
     global[0] = 4; global[1] = 4; global[2] = 64;
     auto t_pool2 = launch_kernel(test_world, maxp, global, maxp_reqd_wg.data());
 
-    auto cnn_outs = data_device_to_host(test_world, class_out);
+    cl_ushort in_neuron1 = static_cast<cl_ushort>(4 * 4 * 64);
+
+    err |= clSetKernelArg(fc, 0, sizeof(cl_mem), &pool2_out.buffer);
+    err |= clSetKernelArg(fc, 1, sizeof(cl_mem), &dens1_out.buffer);
+    err |= clSetKernelArg(fc, 2, sizeof(cl_mem), &cl_wd1.buffer);
+    err |= clSetKernelArg(fc, 3, sizeof(cl_mem), &cl_bd1.buffer);
+    err |= clSetKernelArg(fc, 4, sizeof(cl_ushort), &in_neuron1);
+
+    global[0] = 256; global[1] = 1; global[2] = 1;
+    auto t_fc1 = launch_kernel(test_world, fc, global, fc_reqd_wg.data());
+
+    cl_ushort in_neuron2 = static_cast<cl_ushort>(256);
+
+    err |= clSetKernelArg(fc, 0, sizeof(cl_mem), &dens1_out.buffer);
+    err |= clSetKernelArg(fc, 1, sizeof(cl_mem), &class_out.buffer);
+    err |= clSetKernelArg(fc, 2, sizeof(cl_mem), &cl_wdo.buffer);
+    err |= clSetKernelArg(fc, 3, sizeof(cl_mem), &cl_bdo.buffer);
+    err |= clSetKernelArg(fc, 4, sizeof(cl_ushort), &in_neuron2);
+
+    global[0] = 10; global[1] = 1; global[2] = 1;
+    auto t_fc2 = launch_kernel(test_world, fc, global, fc_reqd_wg.data());
+
+    auto fc2_host_out = data_device_to_host(test_world, class_out);
+    auto s = 0.0f;
+    for(auto d_out : fc2_host_out.buffer) s += d_out;
+    std::cerr << "fc2 output summed: " << s << '\n';
+
+    for(auto cl_out : fc2_host_out.buffer) 
+    {
+        std::cerr << cl_out << '\n';
+    }
+
+    err |= clSetKernelArg(softmax, 0, sizeof(cl_mem), &class_out.buffer);
+    err |= clSetKernelArg(softmax, 1, sizeof(cl_mem), &softm_out.buffer);
+
+    global[0] = 1; global[1] = 1; global[2] = 1;
+    auto t_soft = launch_kernel(test_world, softmax, global, softmax_reqd_wg.data());
+
+    if(err != CL_SUCCESS)
+    {
+        std::cerr << "One of the clSetKernelArg failed!\n";
+        std::exit(EXIT_FAILURE);
+    }
+
+    auto cnn_outs = data_device_to_host(test_world, softm_out);
 
     std::size_t class_no = 0;
     std::cout << std::fixed << std::setprecision(3);

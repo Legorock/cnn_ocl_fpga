@@ -46,13 +46,13 @@ $(error Environment variable XILINX_SDACCEL is required and should point to SDAc
 endif
 
 SDA_FLOW = cpu_emu
-HOST_SRCS = cnn.cpp cnn_test.cpp seq.cpp xcl.cpp helper.cpp oclHelper.cpp oclErrorCodes.cpp ModelImporter.cpp
+HOST_SRCS = cnn.cpp cnn_test.cpp seq.cpp xcl.cpp helper.cpp ModelImporter.cpp
 HOST_EXE_DIR=.
 HOST_EXE = cnn
 HOST_CFLAGS = -g -std=c++0x -Wall -DFPGA_DEVICE -DC_KERNEL -I${XILINX_SDACCEL}/runtime/include/1_2
 HOST_LFLAGS = -L${XILINX_SDACCEL}/runtime/lib/x86_64 -lxilinxopencl -llmx6.0
 
-CLCC_JOBS = 4        # number of jobs for compile and synthesis
+CLCC_JOBS = 8        # number of jobs for compile and synthesis
 CLCC_OPT_LEVEL = -O3 # optimization level of the kernel source
 
 KERNEL_SRCS = krnls_cnn.cl
