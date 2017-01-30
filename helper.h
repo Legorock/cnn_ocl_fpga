@@ -1,8 +1,6 @@
 #pragma once
 
 #include "xcl.h"
-#include "DataBlob.h"
-#include "clDataBlob.h"
 
 #include <string>
 #include <vector>
@@ -21,28 +19,5 @@ std::map<std::string, cl_kernel> get_kernel_map(const std::vector<cl_kernel>& ke
 
 cl_kernel get_kernel_from_vec(const std::vector<cl_kernel>& kernels, const std::string & name);
 
-template<typename T>
-clDataBlob<T> data_host_to_device(xcl_world world, cl_mem_flags flag, DataBlob<T> & blob)
-{
-    clDataBlob<T> device_data = emptyClDataBlob<T>(world, blob.dims, flag);
-    std::size_t tot_size = 1;
-    for(auto size : blob.dims)
-    {
-        tot_size *= size;
-    }    
-    xcl_memcpy_to_device(world, device_data.buffer, blob.buffer.data(), tot_size * sizeof(T));
-    return device_data;
-}
+const char *oclErrorCode(cl_int code);
 
-template<typename T>
-DataBlob<T> data_device_to_host(xcl_world world, clDataBlob<T> & blob)
-{
-    DataBlob<T> host_data = emptyDataBlob<T>(blob.dims);
-    std::size_t tot_size = 1;
-    for(auto size : blob.dims)
-    {
-        tot_size *= size;
-    }
-    xcl_memcpy_from_device(world, host_data.buffer.data(), blob.buffer, tot_size * sizeof(T));
-    return host_data;
-}
