@@ -5,7 +5,7 @@ Copyright:  Copyright 1986-2016 Xilinx, Inc. All Rights Reserved.
 ===============================================================================
 
 -------------------------------------------------------------------------------
-Design Name:      _xocc_compile_krnls_cnn_bin.dir
+Design Name:      _xocc_krnls_cnn_bin_cnn_hw.dir
 Target Device:    xilinx:adm-pcie-ku3:2ddr:3.0
 Target Clock:     250MHz
 -------------------------------------------------------------------------------
@@ -13,21 +13,20 @@ Target Clock:     250MHz
 -------------------------------------------------------------------------------
 Kernel Summary
 
-Total number of kernels: 5
+Total number of kernels: 4
 
 +-----------------------+------------+----------------------+-----------------+---------------+
 | Kernel Name           | Type       | Target               | OpenCL Library  | Compute Units |
 +-----------------------+------------+----------------------+-----------------+---------------+
-| fc_local              | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 5             |
-| softmax_layer         | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 5             |
-| conv_layer            | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 5             |
-| conv_local            | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 5             |
-| max_pool2             | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 5             |
+| fc                    | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 4             |
+| conv_local            | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 4             |
+| softmax_layer         | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 4             |
+| max_pool2             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 4             |
 +-----------------------+------------+----------------------+-----------------+---------------+
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
-OpenCL Binary = xcl_xocc
+OpenCL Binary = bin_cnn_hw
 
 Kernels mapped to = clc_region
 
@@ -38,8 +37,7 @@ Timing Information (MHz)
 | softmax_layer_1      | softmax_layer           | 250                     | 342.466                 |
 | max_pool2_1          | max_pool2               | 250                     | 342.466                 |
 | conv_local_1         | conv_local              | 250                     | 283.286                 |
-| conv_layer_1         | conv_layer              | 250                     | 336.7                   |
-| fc_local_1           | fc_local                | 250                     | 342.466                 |
+| fc_1                 | fc                      | 250                     | 342.466                 |
 +----------------------+-------------------------+-------------------------+-------------------------+
 
 Latency Information (clock cycles)
@@ -49,8 +47,7 @@ Latency Information (clock cycles)
 | softmax_layer_1      | softmax_layer        | 429                  | 428                  | 428                  | 428                  |
 | max_pool2_1          | max_pool2            | 557                  | 556                  | 556                  | 556                  |
 | conv_local_1         | conv_local           | undef                | undef                | undef                | undef                |
-| conv_layer_1         | conv_layer           | undef                | undef                | undef                | undef                |
-| fc_local_1           | fc_local             | 328690               | 328689               | 328689               | 328689               |
+| fc_1                 | fc                   | 449 ~ 1311433        | 448                  | undef                | 1311432              |
 +----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
 
 Area Information
@@ -59,8 +56,7 @@ Area Information
 +----------------------+----------------------+------------+------------+------------+------------+
 | softmax_layer_1      | softmax_layer        | 3027       | 3865       | 9          | 2          |
 | max_pool2_1          | max_pool2            | 3633       | 4258       | 32         | 2          |
-| conv_local_1         | conv_local           | 13865      | 13625      | 31         | 9          |
-| conv_layer_1         | conv_layer           | 5868       | 6048       | 55         | 2          |
-| fc_local_1           | fc_local             | 2858       | 2939       | 5          | 4          |
+| conv_local_1         | conv_local           | 13922      | 13733      | 28         | 9          |
+| fc_1                 | fc                   | 3151       | 3551       | 7          | 2          |
 +----------------------+----------------------+------------+------------+------------+------------+
 -------------------------------------------------------------------------------

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fstream>
+#include <vector>
 #include <cstdint>
 
 namespace mnist_test
@@ -34,4 +36,26 @@ static std::uint8_t img[28*28] = {
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
+
+inline std::vector<float> get_a_img(const char * img_loc)
+{
+    std::ifstream img_num(img_loc, std::ios::binary);
+    if(img_num)
+    {
+        std::streampos fileSize;
+        std::size_t sizeofBuff;
+
+        img_num.seekg(0, std::ios::end);
+        fileSize = img_num.tellg();
+        img_num.seekg(0, std::ios::beg);
+
+        sizeofBuff = fileSize / sizeof(float);
+
+        std::vector<float> f(sizeofBuff, 0.0f);
+        img_num.read(reinterpret_cast<char*>(f.data()), fileSize);
+        return f;
+    }
+    else
+        return std::vector<float>();
+}
 }

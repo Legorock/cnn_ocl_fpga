@@ -13,6 +13,7 @@
 #include "mnist_test_img.h"
 
 #include "helper.h"
+#include "Measure.h"
 
 template<typename T>
 inline static void print_buf(std::ostream& o, const T *  buf, 
@@ -66,7 +67,8 @@ inline static Data getTestImg()
     
     for(std::size_t i = 0; i < 28 * 28; ++i)
     {
-        im.buffer[i] = static_cast<float>(mnist_test::img[i]);
+        im.buffer[i] = static_cast<float>(mnist_test::img[i]) / 255;
+//        im.buffer[i] = static_cast<float>(mnist_test::img[i]);
     }
     return im;
 }
@@ -558,46 +560,116 @@ Data cnn_test::seq_img_test(const Data& img)
     Data class_out = emptyDataBlob<float>({10}); 
     std::cout << "Intermediate data created!" << std::endl;
 
+    StopWatch<> timer;
+    StopWatch<> conv1_t;
+
     conv_seq(img.buffer, img.dims.data(),
              conv1_out.buffer, conv1_out.dims.data(),
              wc1.buffer, bc1.buffer);
 
+    auto s = 0.0f;
+    for(auto out : conv1_out.buffer)
+    {
+        s += out;
+    }
+    std::cerr << "conv1 out sum: " << s << '\n';
+
+    auto t_conv1 = conv1_t.stop();
+    StopWatch<> pool1_t;
+
     max_pool2_seq(conv1_out.buffer, conv1_out.dims.data(),
               pool1_out.buffer, pool1_out.dims.data());
+
+    s = 0.0f;
+    for(auto out : pool1_out.buffer)
+    {
+        s += out;   
+    }
+    std::cerr << "pool1 out sum: " << s << '\n';
+
+    auto t_pool1 = pool1_t.stop();
+    StopWatch<> conv2_t;
 
     conv_seq(pool1_out.buffer, pool1_out.dims.data(),
              conv2_out.buffer, conv2_out.dims.data(),
              wc2.buffer, bc2.buffer);
 
+    s = 0.0f;
+    for(auto out : conv2_out.buffer)
+    {
+        s += out;
+    }
+    std::cerr << "conv2 out sum: " << s << '\n';
+
+    auto t_conv2 = conv2_t.stop();
+    StopWatch<> pool2_t;
+
     max_pool2_seq(conv2_out.buffer, conv2_out.dims.data(),
                   pool2_out.buffer, pool2_out.dims.data());
+
+    s = 0.0f;
+    for(auto out : pool2_out.buffer)
+    {
+        s += out;   
+    }
+    std::cerr << "pool2 out sum: " << s << '\n';
+
+    auto t_pool2 = pool2_t.stop();
+    StopWatch<> fc1_t;
 
     fc_seq(pool2_out.buffer, (pool2_out.dims[0]*pool2_out.dims[1]*pool2_out.dims[2]),
            dens1_out.buffer, dens1_out.dims[0],
            wd1.buffer, bd1.buffer);
+    
+    s = 0.0f;
+    for(auto out : dens1_out.buffer)
+    {
+        s += out;
+    }
+    std::cerr << "dens1 out sum: " << s << '\n';
+
+
+    auto t_fc1 = fc1_t.stop();
+    StopWatch<> fc2_t;
 
     fc_seq(dens1_out.buffer, dens1_out.dims[0],
            class_out.buffer, class_out.dims[0],
            wdo.buffer, bdo.buffer);
 
-    auto s = 0.0f;
-    for(auto d_out : class_out.buffer) s += d_out;
-    std::cerr << "fc2 output summed: " << s << '\n';
-
-    for(auto cpu_out : class_out.buffer)
+    for(auto out : class_out.buffer)
     {
-        std::cerr << cpu_out << '\n';
-    }
+        std::cerr << out << '\n';
+    }std::cerr << '\n';
 
-    
+    auto t_fc2 = fc2_t.stop();
+    StopWatch<> softmax_t;
+
     softmax_seq(class_out.buffer, class_out.dims[0], class_out.buffer);
+
+    for(auto c_out : class_out.buffer)
+    {
+        std::cerr << c_out << '\n';
+    }std::cerr << '\n';
+
+    auto t_soft = softmax_t.stop();
+    auto cpu_elapsed = timer.stop();
+    std::cout << "Total Elapsed Time: " << cpu_elapsed << " us" << '\n';
+    std::cout << "CPU Elapsed Timings: \n";
+    std::cout << "conv1: " << t_conv1 << "\tus"  << '\n';
+    std::cout << "pool1: " << t_pool1 << "\tus"  << '\n';
+    std::cout << "conv2: " << t_conv2 << "\tus"  << '\n';
+    std::cout << "pool2: " << t_pool2 << "\tus"  << '\n';
+    std::cout << "fc1  : " << t_fc1   << "\tus"  << '\n';
+    std::cout << "fc2  : " << t_fc2   << "\tus"  << '\n';
+    std::cout << "soft : " << t_soft  << "\tus"  << '\n';
+    std::cout << std::endl;
 
     std::size_t class_no = 0;
     std::cout << std::fixed << std::setprecision(3);
     for(auto c : class_out.buffer)
     {
-        ++class_no;
         std::cout << "Number: " << class_no << "\t\t\t Confidence: %" << c * 100 << '\n';
+        ++class_no;
     }
     std::cout << std::scientific << std::setprecision(6) << std::endl;
 
@@ -655,95 +727,93 @@ Data cnn_test::ocl_img_test(Data& img)
     cl_uchar conv2_in_height  = static_cast<cl_uchar>(pool1_out.dims[1]);
     cl_uchar conv2_mask_depth = static_cast<cl_uchar>(pool1_out.dims[2]);
 
-    cl_int err = CL_SUCCESS;
-    err |= clSetKernelArg(conv, 0, sizeof(cl_mem), &cl_img.buffer); 
-    err |= clSetKernelArg(conv, 1, sizeof(cl_mem), &conv1_out.buffer);
-    err |= clSetKernelArg(conv, 2, sizeof(cl_mem), &cl_wc1.buffer);
-    err |= clSetKernelArg(conv, 3, sizeof(cl_mem), &cl_bc1.buffer);
-    err |= clSetKernelArg(conv, 4, sizeof(cl_uchar), &conv1_in_width);
-    err |= clSetKernelArg(conv, 5, sizeof(cl_uchar), &conv1_in_height);
-    err |= clSetKernelArg(conv, 6, sizeof(cl_uchar), &conv1_mask_depth);
+    clSetKernelArg(conv, 0, sizeof(cl_mem), &cl_img.buffer); 
+    clSetKernelArg(conv, 1, sizeof(cl_mem), &conv1_out.buffer);
+    clSetKernelArg(conv, 2, sizeof(cl_mem), &cl_wc1.buffer);
+    clSetKernelArg(conv, 3, sizeof(cl_mem), &cl_bc1.buffer);
+    clSetKernelArg(conv, 4, sizeof(cl_uchar), &conv1_in_width);
+    clSetKernelArg(conv, 5, sizeof(cl_uchar), &conv1_in_height);
+    clSetKernelArg(conv, 6, sizeof(cl_uchar), &conv1_mask_depth);
 
+    StopWatch<> timer;
 
     size_t global[3] = {24, 24, 32};
     auto t_conv1 = launch_kernel(test_world, conv, global, conv_reqd_wg.data());
      
-    err |= clSetKernelArg(maxp, 0, sizeof(cl_mem), &conv1_out.buffer);
-    err |= clSetKernelArg(maxp, 1, sizeof(cl_mem), &pool1_out.buffer);
+    clSetKernelArg(maxp, 0, sizeof(cl_mem), &conv1_out.buffer);
+    clSetKernelArg(maxp, 1, sizeof(cl_mem), &pool1_out.buffer);
 
     global[0] = 12; global[1] = 12; global[2] = 32;
     auto t_pool1 = launch_kernel(test_world, maxp, global, maxp_reqd_wg.data());
 
-    err |= clSetKernelArg(conv, 0, sizeof(cl_mem), &pool1_out.buffer);
-    err |= clSetKernelArg(conv, 1, sizeof(cl_mem), &conv2_out.buffer);
-    err |= clSetKernelArg(conv, 2, sizeof(cl_mem), &cl_wc2.buffer);
-    err |= clSetKernelArg(conv, 3, sizeof(cl_mem), &cl_bc2.buffer);
-    err |= clSetKernelArg(conv, 4, sizeof(cl_uchar), &conv2_in_width);
-    err |= clSetKernelArg(conv, 5, sizeof(cl_uchar), &conv2_in_height);
-    err |= clSetKernelArg(conv, 6, sizeof(cl_uchar), &conv2_mask_depth);
+    clSetKernelArg(conv, 0, sizeof(cl_mem), &pool1_out.buffer);
+    clSetKernelArg(conv, 1, sizeof(cl_mem), &conv2_out.buffer);
+    clSetKernelArg(conv, 2, sizeof(cl_mem), &cl_wc2.buffer);
+    clSetKernelArg(conv, 3, sizeof(cl_mem), &cl_bc2.buffer);
+    clSetKernelArg(conv, 4, sizeof(cl_uchar), &conv2_in_width);
+    clSetKernelArg(conv, 5, sizeof(cl_uchar), &conv2_in_height);
+    clSetKernelArg(conv, 6, sizeof(cl_uchar), &conv2_mask_depth);
 
     global[0] = 8; global[1] = 8; global[2] = 64;
     auto t_conv2 = launch_kernel(test_world, conv, global, conv_reqd_wg.data());
 
-    err |= clSetKernelArg(maxp, 0, sizeof(cl_mem), &conv2_out.buffer);
-    err |= clSetKernelArg(maxp, 1, sizeof(cl_mem), &pool2_out.buffer);
+    clSetKernelArg(maxp, 0, sizeof(cl_mem), &conv2_out.buffer);
+    clSetKernelArg(maxp, 1, sizeof(cl_mem), &pool2_out.buffer);
 
     global[0] = 4; global[1] = 4; global[2] = 64;
     auto t_pool2 = launch_kernel(test_world, maxp, global, maxp_reqd_wg.data());
 
     cl_ushort in_neuron1 = static_cast<cl_ushort>(4 * 4 * 64);
 
-    err |= clSetKernelArg(fc, 0, sizeof(cl_mem), &pool2_out.buffer);
-    err |= clSetKernelArg(fc, 1, sizeof(cl_mem), &dens1_out.buffer);
-    err |= clSetKernelArg(fc, 2, sizeof(cl_mem), &cl_wd1.buffer);
-    err |= clSetKernelArg(fc, 3, sizeof(cl_mem), &cl_bd1.buffer);
-    err |= clSetKernelArg(fc, 4, sizeof(cl_ushort), &in_neuron1);
+    clSetKernelArg(fc, 0, sizeof(cl_mem), &pool2_out.buffer);
+    clSetKernelArg(fc, 1, sizeof(cl_mem), &dens1_out.buffer);
+    clSetKernelArg(fc, 2, sizeof(cl_mem), &cl_wd1.buffer);
+    clSetKernelArg(fc, 3, sizeof(cl_mem), &cl_bd1.buffer);
+    clSetKernelArg(fc, 4, sizeof(cl_ushort), &in_neuron1);
 
     global[0] = 256; global[1] = 1; global[2] = 1;
     auto t_fc1 = launch_kernel(test_world, fc, global, fc_reqd_wg.data());
 
     cl_ushort in_neuron2 = static_cast<cl_ushort>(256);
 
-    err |= clSetKernelArg(fc, 0, sizeof(cl_mem), &dens1_out.buffer);
-    err |= clSetKernelArg(fc, 1, sizeof(cl_mem), &class_out.buffer);
-    err |= clSetKernelArg(fc, 2, sizeof(cl_mem), &cl_wdo.buffer);
-    err |= clSetKernelArg(fc, 3, sizeof(cl_mem), &cl_bdo.buffer);
-    err |= clSetKernelArg(fc, 4, sizeof(cl_ushort), &in_neuron2);
+    clSetKernelArg(fc, 0, sizeof(cl_mem), &dens1_out.buffer);
+    clSetKernelArg(fc, 1, sizeof(cl_mem), &class_out.buffer);
+    clSetKernelArg(fc, 2, sizeof(cl_mem), &cl_wdo.buffer);
+    clSetKernelArg(fc, 3, sizeof(cl_mem), &cl_bdo.buffer);
+    clSetKernelArg(fc, 4, sizeof(cl_ushort), &in_neuron2);
 
     global[0] = 10; global[1] = 1; global[2] = 1;
     auto t_fc2 = launch_kernel(test_world, fc, global, fc_reqd_wg.data());
 
-    auto fc2_host_out = data_device_to_host(test_world, class_out);
-    auto s = 0.0f;
-    for(auto d_out : fc2_host_out.buffer) s += d_out;
-    std::cerr << "fc2 output summed: " << s << '\n';
-
-    for(auto cl_out : fc2_host_out.buffer) 
-    {
-        std::cerr << cl_out << '\n';
-    }
-
-    err |= clSetKernelArg(softmax, 0, sizeof(cl_mem), &class_out.buffer);
-    err |= clSetKernelArg(softmax, 1, sizeof(cl_mem), &softm_out.buffer);
+    clSetKernelArg(softmax, 0, sizeof(cl_mem), &class_out.buffer);
+    clSetKernelArg(softmax, 1, sizeof(cl_mem), &softm_out.buffer);
 
     global[0] = 1; global[1] = 1; global[2] = 1;
     auto t_soft = launch_kernel(test_world, softmax, global, softmax_reqd_wg.data());
 
-    if(err != CL_SUCCESS)
-    {
-        std::cerr << "One of the clSetKernelArg failed!\n";
-        std::exit(EXIT_FAILURE);
-    }
+    auto fpga_elapsed = timer.stop();
 
     auto cnn_outs = data_device_to_host(test_world, softm_out);
+
+    std::cout << "Total Time Elapsed: " << (std::size_t)fpga_elapsed << "\tus"  << '\n';
+    std::cout << "FPGA Elapsed Timings: \n";
+    std::cout << "conv1: " << (std::size_t)t_conv1 / 1000 << "\tus"  << '\n';
+    std::cout << "pool1: " << (std::size_t)t_pool1 / 1000 << "\tus"  << '\n';
+    std::cout << "conv2: " << (std::size_t)t_conv2 / 1000 << "\tus"  << '\n';
+    std::cout << "pool2: " << (std::size_t)t_pool2 / 1000 << "\tus"  << '\n';
+    std::cout << "fc1  : " << (std::size_t)t_fc1   / 1000 << "\tus"  << '\n';
+    std::cout << "fc2  : " << (std::size_t)t_fc2   / 1000 << "\tus"  << '\n';
+    std::cout << "soft : " << (std::size_t)t_soft  / 1000 << "\tus"  << '\n';
+    std::cout << std::endl;
 
     std::size_t class_no = 0;
     std::cout << std::fixed << std::setprecision(3);
     for(auto c : cnn_outs.buffer)
     {
-        ++class_no;
         std::cout << "Number: " << class_no << "\t\t\t Confidence: %" << c * 100 << '\n';
+        ++class_no;
     }
+
     std::cout << std::scientific << std::setprecision(6) << std::endl;
 
     clReleaseMemObject(cl_img.buffer);
@@ -762,14 +832,45 @@ Data cnn_test::ocl_img_test(Data& img)
 
 float cnn_test::test_img()
 {
-//    Data img;
-//    img.buffer = gen2Data<'w'>(28, 28);
-//    img.dims = std::vector<std::size_t>({28, 28, 1});
     Data img = getTestImg();
+    //auto img_data = mnist_test::get_a_img("lenet_data/mnist_7");
+    //Data img;
+    ////img.buffer = img_data;
+    //img.buffer.resize(784);
+    //for(std::size_t w = 0; w < 28; ++w)
+    //{
+    //    for(std::size_t h = 0; h < 28; ++h)
+    //    {
+    //        img.buffer[w + 28 * h] = img_data[w + 28 * h] * 255.0f;
+    //    }
+    //}
+    //img.dims = {28, 28, 1};
+    //std::cerr << std::fixed << std::setprecision(0);
+    //for(std::size_t h= 0; h < 1; ++h)
+    //{
+    //    for(std::size_t w = 0; w < 28; ++w)
+    //    {
+    //        std::cerr << img.buffer[w + h * 28] << ' ';
+    //    }
+    //    std::cerr << '\n' << std::setprecision(5);
+    //}
+
+    //std::ofstream test_img("test_img_out.txt");
+    //test_img << std::fixed << std::setprecision(0);
+    //print_buf(test_img, img.buffer.data(), img.dims, img.dims.size()-1);
+
     std::cout << "test image generated!" << std::endl;
 
     auto seq_out = seq_img_test(img);
     auto ocl_out = ocl_img_test(img);
 
-    return 0.0f;
+    if(seq_out.buffer.size() != ocl_out.buffer.size())
+    {
+        std::cerr << "test_img output buffer sizes are not equal!!\n";
+        return 0.0f;
+    }
+    else
+    {
+        return absolute(seq_out.buffer, ocl_out.buffer);   
+    }
 }
