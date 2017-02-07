@@ -66,8 +66,8 @@ int main(int argc, char ** argv)
     if(exe_mode == "test") 
     {
         cnn_test t(world, xclbinFilename.c_str(), is_binary);
-        auto test_err = t.test();
-        std::cout << "Test error: " << test_err << std::endl;
+//        auto test_err = t.test();
+//        std::cout << "Test error: " << test_err << std::endl;
     }
     else if(exe_mode == "test_img")
     {
