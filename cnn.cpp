@@ -19,20 +19,14 @@ int main(int argc, char ** argv)
     const char * target_device_name = TARGET_DEVICE;
     const char * target_vendor = "Xilinx";
 
-    if(argc != 3 && argc != 4)
+    if(argc != 3 || (std::string(argv[2]) != "testimg" && std::string(argv[2]) != "runall"))
     {
-        std::cout << "Usage: " << argv[0] << " <xclbin>" << " <{'test', 'test_img', 'runall <images>', 'run <image>'}>" << std::endl;
-	return -1;
+        std::cout << "Usage: " << argv[0] << " <xclbin>" << " <{'testimg', 'runall'}>" << std::endl;
+    	return -1;
     }
 
     std::string xclbinFilename(argv[1]);
     std::string exe_mode(argv[2]);
-    std::string mode_param;
-
-    if(argc == 4)
-    {
-        mode_param = std::string(argv[3]);
-    }
 
     std::cout << "Vendor: " << target_vendor << '\n'
               << "Device: " << target_device_name << '\n'
@@ -63,13 +57,7 @@ int main(int argc, char ** argv)
          return -1;
     }
     
-    if(exe_mode == "test") 
-    {
-        cnn_test t(world, xclbinFilename.c_str(), is_binary);
-//        auto test_err = t.test();
-//        std::cout << "Test error: " << test_err << std::endl;
-    }
-    else if(exe_mode == "test_img")
+    if(exe_mode == "testimg")
     {
         cnn_test t(world, xclbinFilename.c_str(), is_binary);
         auto test_err = t.test_img();
@@ -79,13 +67,9 @@ int main(int argc, char ** argv)
     {
 
     }
-    else if(exe_mode == "run")
-    {
-    
-    }
     else
     {
-        std::cerr << "Unknown execution mod!\n";
+        std::cerr << "Unknown execution mode!\n";
         return -1;   
     }
 
