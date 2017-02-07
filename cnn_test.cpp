@@ -68,7 +68,6 @@ inline static Data getTestImg()
     for(std::size_t i = 0; i < 28 * 28; ++i)
     {
         im.buffer[i] = static_cast<float>(mnist_test::img[i]) / 255;
-//        im.buffer[i] = static_cast<float>(mnist_test::img[i]);
     }
     return im;
 }
@@ -540,7 +539,7 @@ float cnn_test::test()
 
 Data cnn_test::seq_img_test(const Data& img)
 {
-    ModelImporter m_import("lenet_data/nn_model.csv");
+    ModelImporter m_import("lenet_data/model.csv");
     std::cout << "Sequential Run Model Data Loaded!\n";
     auto wc1 = m_import.get_buffer("wc1"); // Conv1 weights
     auto bc1 = m_import.get_buffer("bc1"); // Conv1 biases
@@ -551,7 +550,9 @@ Data cnn_test::seq_img_test(const Data& img)
     auto wdo = m_import.get_buffer("wdo"); // FullyConn. out (dense) weights
     auto bdo = m_import.get_buffer("bdo"); // FullyConn. out (dense) biases
     std::cout << "Sequential Run Model Weights and Biases are Extracted!\n";
-    
+   
+    //std::cerr << std::fixed << std::setprecision(3);
+
     Data conv1_out = emptyDataBlob<float>({24, 24, 32});
     Data pool1_out = emptyDataBlob<float>({12, 12, 32});
     Data conv2_out = emptyDataBlob<float>({8, 8, 64});
@@ -628,7 +629,6 @@ Data cnn_test::seq_img_test(const Data& img)
     }
     std::cerr << "dens1 out sum: " << s << '\n';
 
-
     auto t_fc1 = fc1_t.stop();
     StopWatch<> fc2_t;
 
@@ -636,20 +636,10 @@ Data cnn_test::seq_img_test(const Data& img)
            class_out.buffer, class_out.dims[0],
            wdo.buffer, bdo.buffer);
 
-    for(auto out : class_out.buffer)
-    {
-        std::cerr << out << '\n';
-    }std::cerr << '\n';
-
     auto t_fc2 = fc2_t.stop();
     StopWatch<> softmax_t;
 
     softmax_seq(class_out.buffer, class_out.dims[0], class_out.buffer);
-
-    for(auto c_out : class_out.buffer)
-    {
-        std::cerr << c_out << '\n';
-    }std::cerr << '\n';
 
     auto t_soft = softmax_t.stop();
     auto cpu_elapsed = timer.stop();
@@ -690,7 +680,7 @@ Data cnn_test::ocl_img_test(Data& img)
 
     auto cl_img = data_host_to_device(test_world, CL_MEM_READ_ONLY, img);
 
-    ModelImporter m_import("lenet_data/nn_model.csv");
+    ModelImporter m_import("lenet_data/cnn_model.csv");
     std::cout << "OpenCL Run Model Data Loaded!\n";
     auto wc1 = m_import.get_buffer("wc1"); // Conv1 weights
     auto bc1 = m_import.get_buffer("bc1"); // Conv1 biases
@@ -833,31 +823,20 @@ Data cnn_test::ocl_img_test(Data& img)
 float cnn_test::test_img()
 {
     Data img = getTestImg();
-    //auto img_data = mnist_test::get_a_img("lenet_data/mnist_7");
+    //auto img_data = mnist_test::get_a_img("lenet_data/test_img1_7");
     //Data img;
-    ////img.buffer = img_data;
-    //img.buffer.resize(784);
-    //for(std::size_t w = 0; w < 28; ++w)
-    //{
-    //    for(std::size_t h = 0; h < 28; ++h)
-    //    {
-    //        img.buffer[w + 28 * h] = img_data[w + 28 * h] * 255.0f;
-    //    }
-    //}
     //img.dims = {28, 28, 1};
-    //std::cerr << std::fixed << std::setprecision(0);
-    //for(std::size_t h= 0; h < 1; ++h)
-    //{
-    //    for(std::size_t w = 0; w < 28; ++w)
-    //    {
-    //        std::cerr << img.buffer[w + h * 28] << ' ';
-    //    }
-    //    std::cerr << '\n' << std::setprecision(5);
-    //}
+    //img.buffer = img_data;
 
-    //std::ofstream test_img("test_img_out.txt");
-    //test_img << std::fixed << std::setprecision(0);
-    //print_buf(test_img, img.buffer.data(), img.dims, img.dims.size()-1);
+//    img.buffer.resize(784);
+//    for(std::size_t w = 0; w < 28; ++w)
+//    {
+//        for(std::size_t h = 0; h < 28; ++h)
+//        {
+//            img.buffer[w + 28 * h] = img_data[w + 28 * h];
+////            img.buffer[w + 28 * h] = 1.0f;
+//        }
+//    }
 
     std::cout << "test image generated!" << std::endl;
 
