@@ -7,6 +7,7 @@
 #include "xcl.h"
 
 #include "cnn_test.h"
+#include "cnn_runall.h"
 
 int main(int argc, char ** argv)
 {
@@ -65,7 +66,9 @@ int main(int argc, char ** argv)
     }
     else if(exe_mode == "runall")
     {
-
+        cnn_runall r(world, xclbinFilename.c_str(), is_binary);
+        auto runall_err = r.run_all();
+        std::cout << "Runall error: " << runall_err << std::endl;
     }
     else
     {

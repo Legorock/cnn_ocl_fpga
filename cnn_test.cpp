@@ -20,7 +20,7 @@ inline static void print_buf(std::ostream& o, const T *  buf,
         const std::vector<std::size_t>& dims, const std::size_t curr_dim);
 
 const std::vector<std::string> kernel_names = {"max_pool2", "conv_local", "softmax_layer", "fc"};
-const std::vector<std::string> kernel_layers = {"max_pool", "conv", "fc", "softmax"};
+//const std::vector<std::string> kernel_layers = {"max_pool", "conv", "fc", "softmax"};
 
 
 static auto absolute = [](const std::vector<float>& seq, const std::vector<float>& ocl)
@@ -81,8 +81,9 @@ inline static void print_buf(std::ostream& o, const T *  buf,
 }
 
 // Constructor
-cnn_test::cnn_test(xcl_world& world, const char * clFilename, bool isBinary) : test_world(world)
+cnn_test::cnn_test(xcl_world& world, const char * clFilename, bool isBinary) : m_world(world)
 {    
+    std::cout << "Initializing OpenCL Kernels (Binary or Source)...\n";
     if(isBinary)
     {
         kernels = get_kernels_binary(world, clFilename, kernel_names); 
@@ -95,6 +96,7 @@ cnn_test::cnn_test(xcl_world& world, const char * clFilename, bool isBinary) : t
             kernels.push_back(xcl_import_source(world, clFilename, kernel_names[i].c_str()));
         } 
     }
+    std::cout << "OpenCL Kernels Initialized!" << std::endl;
 }
 
 // Destructor
@@ -239,15 +241,15 @@ Data cnn_test::seq_img_test(const Data& img)
 Data cnn_test::ocl_img_test(Data& img)
 {
     cl_kernel conv = get_kernel_from_vec(kernels, "conv_local");
-    auto conv_reqd_wg = get_kernel_reqd_wg_size(conv, test_world.device_id);
+    auto conv_reqd_wg = get_kernel_reqd_wg_size(conv, m_world.device_id);
     cl_kernel maxp = get_kernel_from_vec(kernels, "max_pool2");
-    auto maxp_reqd_wg = get_kernel_reqd_wg_size(maxp, test_world.device_id);
+    auto maxp_reqd_wg = get_kernel_reqd_wg_size(maxp, m_world.device_id);
     cl_kernel fc = get_kernel_from_vec(kernels, "fc");
-    auto fc_reqd_wg = get_kernel_reqd_wg_size(fc, test_world.device_id);
+    auto fc_reqd_wg = get_kernel_reqd_wg_size(fc, m_world.device_id);
     cl_kernel softmax = get_kernel_from_vec(kernels, "softmax_layer");
-    auto softmax_reqd_wg = get_kernel_reqd_wg_size(softmax, test_world.device_id);
+    auto softmax_reqd_wg = get_kernel_reqd_wg_size(softmax, m_world.device_id);
 
-    auto cl_img = data_host_to_device(test_world, CL_MEM_READ_ONLY, img);
+    auto cl_img = data_host_to_device(m_world, CL_MEM_READ_ONLY, img);
 
     ModelImporter m_import("lenet_data/model.csv");
     std::cout << "OpenCL Run Model Data Loaded!\n";
@@ -260,23 +262,23 @@ Data cnn_test::ocl_img_test(Data& img)
     auto wdo = m_import.get_buffer("wdo"); // FullyConn. out (dense) weights
     auto bdo = m_import.get_buffer("bdo"); // FullyConn. out (dense) biases
      
-    auto cl_wc1 = data_host_to_device(test_world, CL_MEM_READ_ONLY, wc1);
-    auto cl_bc1 = data_host_to_device(test_world, CL_MEM_READ_ONLY, bc1);
-    auto cl_wc2 = data_host_to_device(test_world, CL_MEM_READ_ONLY, wc2);
-    auto cl_bc2 = data_host_to_device(test_world, CL_MEM_READ_ONLY, bc2);
-    auto cl_wd1 = data_host_to_device(test_world, CL_MEM_READ_ONLY, wd1);
-    auto cl_bd1 = data_host_to_device(test_world, CL_MEM_READ_ONLY, bd1);
-    auto cl_wdo = data_host_to_device(test_world, CL_MEM_READ_ONLY, wdo);
-    auto cl_bdo = data_host_to_device(test_world, CL_MEM_READ_ONLY, bdo);
+    auto cl_wc1 = data_host_to_device(m_world, CL_MEM_READ_ONLY, wc1);
+    auto cl_bc1 = data_host_to_device(m_world, CL_MEM_READ_ONLY, bc1);
+    auto cl_wc2 = data_host_to_device(m_world, CL_MEM_READ_ONLY, wc2);
+    auto cl_bc2 = data_host_to_device(m_world, CL_MEM_READ_ONLY, bc2);
+    auto cl_wd1 = data_host_to_device(m_world, CL_MEM_READ_ONLY, wd1);
+    auto cl_bd1 = data_host_to_device(m_world, CL_MEM_READ_ONLY, bd1);
+    auto cl_wdo = data_host_to_device(m_world, CL_MEM_READ_ONLY, wdo);
+    auto cl_bdo = data_host_to_device(m_world, CL_MEM_READ_ONLY, bdo);
     std::cout << "OpenCL Run Model Weights and Biases are Extracted!\n";
 
-    auto conv1_out = emptyClDataBlob<float>(test_world, {24, 24, 32}, CL_MEM_READ_WRITE);
-    auto pool1_out = emptyClDataBlob<float>(test_world, {12, 12, 32}, CL_MEM_READ_WRITE);
-    auto conv2_out = emptyClDataBlob<float>(test_world, {8, 8, 64}, CL_MEM_READ_WRITE);
-    auto pool2_out = emptyClDataBlob<float>(test_world, {4, 4, 64}, CL_MEM_READ_WRITE);
-    auto dens1_out = emptyClDataBlob<float>(test_world, {256}, CL_MEM_READ_WRITE);
-    auto class_out = emptyClDataBlob<float>(test_world, {10}, CL_MEM_READ_WRITE);
-    auto softm_out = emptyClDataBlob<float>(test_world, {10}, CL_MEM_WRITE_ONLY);
+    auto conv1_out = emptyClDataBlob<float>(m_world, {24, 24, 32}, CL_MEM_READ_WRITE);
+    auto pool1_out = emptyClDataBlob<float>(m_world, {12, 12, 32}, CL_MEM_READ_WRITE);
+    auto conv2_out = emptyClDataBlob<float>(m_world, {8, 8, 64}, CL_MEM_READ_WRITE);
+    auto pool2_out = emptyClDataBlob<float>(m_world, {4, 4, 64}, CL_MEM_READ_WRITE);
+    auto dens1_out = emptyClDataBlob<float>(m_world, {256}, CL_MEM_READ_WRITE);
+    auto class_out = emptyClDataBlob<float>(m_world, {10}, CL_MEM_READ_WRITE);
+    auto softm_out = emptyClDataBlob<float>(m_world, {10}, CL_MEM_WRITE_ONLY);
     std::cout << "Intermediate data created!" << std::endl;
 
     cl_uchar conv1_in_width   = static_cast<cl_uchar>(cl_img.dims[0]);
@@ -297,13 +299,13 @@ Data cnn_test::ocl_img_test(Data& img)
     StopWatch<> timer;
 
     size_t global[3] = {24, 24, 32};
-    auto t_conv1 = launch_kernel(test_world, conv, global, conv_reqd_wg.data());
+    auto t_conv1 = launch_kernel(m_world, conv, global, conv_reqd_wg.data());
 
     clSetKernelArg(maxp, 0, sizeof(cl_mem), &conv1_out.buffer);
     clSetKernelArg(maxp, 1, sizeof(cl_mem), &pool1_out.buffer);
 
     global[0] = 12; global[1] = 12; global[2] = 32;
-    auto t_pool1 = launch_kernel(test_world, maxp, global, maxp_reqd_wg.data());
+    auto t_pool1 = launch_kernel(m_world, maxp, global, maxp_reqd_wg.data());
 
     clSetKernelArg(conv, 0, sizeof(cl_mem), &pool1_out.buffer);
     clSetKernelArg(conv, 1, sizeof(cl_mem), &conv2_out.buffer);
@@ -314,13 +316,13 @@ Data cnn_test::ocl_img_test(Data& img)
     clSetKernelArg(conv, 6, sizeof(cl_uchar), &conv2_mask_depth);
 
     global[0] = 8; global[1] = 8; global[2] = 64;
-    auto t_conv2 = launch_kernel(test_world, conv, global, conv_reqd_wg.data());
+    auto t_conv2 = launch_kernel(m_world, conv, global, conv_reqd_wg.data());
 
     clSetKernelArg(maxp, 0, sizeof(cl_mem), &conv2_out.buffer);
     clSetKernelArg(maxp, 1, sizeof(cl_mem), &pool2_out.buffer);
 
     global[0] = 4; global[1] = 4; global[2] = 64;
-    auto t_pool2 = launch_kernel(test_world, maxp, global, maxp_reqd_wg.data());
+    auto t_pool2 = launch_kernel(m_world, maxp, global, maxp_reqd_wg.data());
 
     cl_ushort in_neuron1 = static_cast<cl_ushort>(4 * 4 * 64);
 
@@ -331,7 +333,7 @@ Data cnn_test::ocl_img_test(Data& img)
     clSetKernelArg(fc, 4, sizeof(cl_ushort), &in_neuron1);
 
     global[0] = 256; global[1] = 1; global[2] = 1;
-    auto t_fc1 = launch_kernel(test_world, fc, global, fc_reqd_wg.data());
+    auto t_fc1 = launch_kernel(m_world, fc, global, fc_reqd_wg.data());
 
     cl_ushort in_neuron2 = static_cast<cl_ushort>(256);
 
@@ -342,17 +344,17 @@ Data cnn_test::ocl_img_test(Data& img)
     clSetKernelArg(fc, 4, sizeof(cl_ushort), &in_neuron2);
 
     global[0] = 10; global[1] = 1; global[2] = 1;
-    auto t_fc2 = launch_kernel(test_world, fc, global, fc_reqd_wg.data());
+    auto t_fc2 = launch_kernel(m_world, fc, global, fc_reqd_wg.data());
 
     clSetKernelArg(softmax, 0, sizeof(cl_mem), &class_out.buffer);
     clSetKernelArg(softmax, 1, sizeof(cl_mem), &softm_out.buffer);
 
     global[0] = 1; global[1] = 1; global[2] = 1;
-    auto t_soft = launch_kernel(test_world, softmax, global, softmax_reqd_wg.data());
+    auto t_soft = launch_kernel(m_world, softmax, global, softmax_reqd_wg.data());
 
     auto fpga_elapsed = timer.stop();
 
-    auto cnn_outs = data_device_to_host(test_world, softm_out);
+    auto cnn_outs = data_device_to_host(m_world, softm_out);
 
     std::cout << "Total Time Elapsed: " << (std::size_t)fpga_elapsed << "\tus"  << '\n';
     std::cout << "FPGA Elapsed Timings: \n";

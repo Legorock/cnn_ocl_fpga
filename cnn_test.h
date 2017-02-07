@@ -19,7 +19,7 @@ public:
     float test_img();
 private:
     std::vector<cl_kernel> kernels;
-    xcl_world & test_world;
+    xcl_world & m_world;
 private:
     Data seq_img_test(const Data& img);
     Data ocl_img_test(Data& img);
