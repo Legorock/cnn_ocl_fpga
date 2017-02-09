@@ -110,7 +110,8 @@ cnn_test::~cnn_test()
 
 Data cnn_test::seq_img_test(const Data& img)
 {
-    ModelImporter m_import("lenet_data/model.csv");
+    //ModelImporter m_import("lenet_data/model.csv");
+    ModelImporter m_import("../lenet_data/model.csv");
     std::cout << "Sequential Run Model Data Loaded!\n";
     auto wc1 = m_import.get_buffer("wc1"); // Conv1 weights
     auto bc1 = m_import.get_buffer("bc1"); // Conv1 biases
@@ -251,7 +252,8 @@ Data cnn_test::ocl_img_test(Data& img)
 
     auto cl_img = data_host_to_device(m_world, CL_MEM_READ_ONLY, img);
 
-    ModelImporter m_import("lenet_data/model.csv");
+    //ModelImporter m_import("lenet_data/model.csv");
+    ModelImporter m_import("../lenet_data/model.csv");
     std::cout << "OpenCL Run Model Data Loaded!\n";
     auto wc1 = m_import.get_buffer("wc1"); // Conv1 weights
     auto bc1 = m_import.get_buffer("bc1"); // Conv1 biases

@@ -1,5 +1,5 @@
 SDAccel Profile Summary
-Generated on: 2017-02-07 18:54:45
+Generated on: 2017-02-09 09:09:44
 Profiled application: cnn
 Target platform: Xilinx
 Target devices: xilinx:adm-pcie-ku3:2ddr:3.0-0
@@ -8,19 +8,19 @@ Tool version: 2016.2
 
 OpenCL API Calls
 API Name,Number Of Calls,Total Time (ms),Minimum Time (ms),Average Time (ms),Maximum Time (ms),
-clCreateProgramWithBinary,1,11222.3,11222.3,11222.3,11222.3,
-clCreateContext,1,10090.1,10090.1,10090.1,10090.1,
-clGetPlatformIDs,3,0.146365,0.001251,0.0487883,0.138908,
-clReleaseCommandQueue,1,0.018072,0.018072,0.018072,0.018072,
-clReleaseKernel,4,0.013826,0.001249,0.0034565,0.008487,
-clCreateKernel,4,0.012537,0.001455,0.00313425,0.005682,
-clCreateCommandQueue,1,0.00354,0.00354,0.00354,0.00354,
-clGetDeviceInfo,1,0.002944,0.002944,0.002944,0.002944,
-clBuildProgram,1,0.002454,0.002454,0.002454,0.002454,
-clGetPlatformInfo,1,0.002381,0.002381,0.002381,0.002381,
-clGetDeviceIDs,1,0.00148,0.00148,0.00148,0.00148,
-clFinish,1,0.000854,0.000854,0.000854,0.000854,
-clReleaseContext,1,0.000778,0.000778,0.000778,0.000778,
+clCreateProgramWithBinary,1,11266.5,11266.5,11266.5,11266.5,
+clCreateContext,1,10106.5,10106.5,10106.5,10106.5,
+clGetPlatformIDs,3,0.156467,0.001587,0.0521557,0.148862,
+clReleaseCommandQueue,1,0.017499,0.017499,0.017499,0.017499,
+clReleaseKernel,4,0.013762,0.001265,0.0034405,0.008259,
+clCreateKernel,4,0.013228,0.001623,0.003307,0.006122,
+clCreateCommandQueue,1,0.003524,0.003524,0.003524,0.003524,
+clGetDeviceInfo,1,0.003081,0.003081,0.003081,0.003081,
+clGetPlatformInfo,1,0.00251,0.00251,0.00251,0.00251,
+clBuildProgram,1,0.002166,0.002166,0.002166,0.002166,
+clGetDeviceIDs,1,0.001573,0.001573,0.001573,0.001573,
+clFinish,1,0.00103,0.00103,0.00103,0.00103,
+clReleaseContext,1,0.00088,0.00088,0.00088,0.00088,
 
 
 Kernel Execution

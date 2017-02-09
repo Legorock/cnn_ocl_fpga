@@ -53,6 +53,7 @@ cnn_runall::cnn_runall(xcl_world & world, const char * clFilename, bool isBinary
     std::cout << "OpenCL Kernels Initialized!\n";
 
     std::cout << "MNIST Dataset is loading....\n";
+    mnist::mnist_path = "../mnist/";
     auto dataset = mnist::read_dataset<>();
 
     train_imgs.reserve(dataset.training_images.size());
