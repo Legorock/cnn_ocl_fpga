@@ -99,3 +99,8 @@ DataBlob<float> ModelImporter::get_buffer(const std::string & buf_name)
 {
     return buffers.at(buf_name);
 }
+
+std::map<std::string, DataBlob<float>> ModelImporter::get_buffers()
+{
+    return buffers;
+}

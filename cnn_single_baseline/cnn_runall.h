@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+#include <map>
+
 //OpenCL includes
 #include "xcl.h"
 
@@ -27,4 +29,10 @@ private:
     std::vector<std::vector<float>> test_imgs;
     std::vector<std::vector<float>> train_labels;
     std::vector<std::vector<float>> test_labels;
+
+    std::map<std::string, Data> model_params;
+
+private:
+//    Data seq_run_img(const Data& img);
+//    Data ocl_run_img(Data& img);
 };

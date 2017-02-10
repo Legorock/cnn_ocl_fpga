@@ -33,9 +33,28 @@ std::vector<float> label_to_oneshot(const std::uint8_t label)
     return oneshot;
 }
 
+std::map<std::string, Data> getModel(const std::string & model_path)
+{
+    std::cout << "Importing Model...\n";
+    ModelImporter importer(model_path);
+    std::cout << "Model is Imported!\n";
+    return importer.get_buffers();
+
+//    std::map<std::string, Data> model;
+//    model["wc1"] = importer.get_buffer("wc1"); // Conv1 weights
+//    model["bc1"] = importer.get_buffer("bc1"); // Conv1 biases
+//    model["wc2"] = importer.get_buffer("wc2"); // Conv2 weights
+//    model["bc2"] = importer.get_buffer("bc2"); // Conv2 biases
+//    model["wd1"] = importer.get_buffer("wd1"); // FullyConn. (dense) weights
+//    model["bd1"] = importer.get_buffer("bd1"); // FullyConn. (dense) biases
+//    model["wdo"] = importer.get_buffer("wdo"); // FullyConn. out (dense) weights
+//    model["bdo"] = importer.get_buffer("bdo"); // FullyConn. out (dense) biases
+//    return model;
+}
+
 // Constructor
 cnn_runall::cnn_runall(xcl_world & world, const char * clFilename, bool isBinary)
-    : m_world(world)
+    : m_world(world), model_params(getModel("../lenet_data/model.csv"))
 {
     std::cout << "Initializing OpenCL Kernels(Binary or Source)...\n";
     if(isBinary)
@@ -86,3 +105,17 @@ float cnn_runall::run_all()
 {
     return 0.0f;
 }
+
+//Data cnn_runall::seq_run_img(const Data& img)
+//{
+//    Data d;
+//    return d;
+//}
+//
+//Data cnn_runall::ocl_run_img(Data& img)
+//{
+//    Data d;
+//    return d;
+//}
+
+

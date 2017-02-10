@@ -70,6 +70,22 @@ double launch_kernel(xcl_world world, cl_kernel krnl,
     return (double)stop - (double)start;
 }
 
+cl_event launch_kernel_async(xcl_world world, cl_kernel krnl,
+                     size_t global[3], size_t local[3])
+{
+    cl_event event;
+    cl_int err = clEnqueueNDRangeKernel(world.command_queue, krnl, 3,
+                                        nullptr, global, local, 0, nullptr, &event);
+
+    if(err != CL_SUCCESS)
+    {
+        std::cerr << "ERROR: failed executing the kernel!" << '\t' << err << '\n';
+        std::cerr << "Test failed!\n";
+        exit(EXIT_FAILURE);
+    }
+    return event;
+}
+
 std::vector<cl_kernel> get_kernels_binary(xcl_world world, const char * bin_name, const std::vector<std::string>& kernel_names)
 {
     cl_int err;
