@@ -169,6 +169,10 @@ void fc_local(__global DATA_TYPE * in, __global DATA_TYPE * out,
 }
 */
 
+// Fully connected layer
+// kernel launch grid based on
+// number of output neuron
+
 __kernel __attribute__((reqd_work_group_size(2, 1, 1)))
 void fc(__global DATA_TYPE * in, __global DATA_TYPE * out,
         __constant DATA_TYPE * weights, __constant DATA_TYPE * biases, 

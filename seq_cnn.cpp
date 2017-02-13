@@ -3,6 +3,7 @@
 #include <iostream>
 #include <iomanip>
 
+#include "helper.h"
 #include "Measure.h"
 
 
@@ -29,107 +30,98 @@ Data seq_cnn_img_test(const Data& img, const std::map<std::string, DataBlob<floa
     Data class_out = emptyDataBlob<float>({10}); 
     std::cout << "Intermediate data created!" << std::endl; 
 
-    StopWatch<> timer;
-    StopWatch<> conv1_t;
+//    StopWatch<> timer;
+//    StopWatch<> conv1_t;
 
     conv_seq(img.buffer, img.dims.data(),
              conv1_out.buffer, conv1_out.dims.data(),
              wc1.buffer, bc1.buffer);
 
-    auto s = 0.0f;
-    for(auto out : conv1_out.buffer)
-    {
-        s += out;
-    }
-    std::cerr << "conv1 out sum: " << s << '\n';
+//    auto s = 0.0f;
+//    for(auto out : conv1_out.buffer)
+//    {
+//        s += out;
+//    }
+//    std::cerr << "conv1 out sum: " << s << '\n';
 
-    auto t_conv1 = conv1_t.stop();
-    StopWatch<> pool1_t;
+//    auto t_conv1 = conv1_t.stop();
+//    StopWatch<> pool1_t;
 
     max_pool2_seq(conv1_out.buffer, conv1_out.dims.data(),
               pool1_out.buffer, pool1_out.dims.data());
 
-    s = 0.0f;
-    for(auto out : pool1_out.buffer)
-    {
-        s += out;   
-    }
-    std::cerr << "pool1 out sum: " << s << '\n';
-
-    auto t_pool1 = pool1_t.stop();
-    StopWatch<> conv2_t;
+//    s = 0.0f;
+//    for(auto out : pool1_out.buffer)
+//    {
+//        s += out;   
+//    }
+//    std::cerr << "pool1 out sum: " << s << '\n';
+//
+//    auto t_pool1 = pool1_t.stop();
+//    StopWatch<> conv2_t;
 
     conv_seq(pool1_out.buffer, pool1_out.dims.data(),
              conv2_out.buffer, conv2_out.dims.data(),
              wc2.buffer, bc2.buffer);
 
-    s = 0.0f;
-    for(auto out : conv2_out.buffer)
-    {
-        s += out;
-    }
-    std::cerr << "conv2 out sum: " << s << '\n';
-
-    auto t_conv2 = conv2_t.stop();
-    StopWatch<> pool2_t;
+//    s = 0.0f;
+//    for(auto out : conv2_out.buffer)
+//    {
+//        s += out;
+//    }
+//    std::cerr << "conv2 out sum: " << s << '\n';
+//
+//    auto t_conv2 = conv2_t.stop();
+//    StopWatch<> pool2_t;
 
     max_pool2_seq(conv2_out.buffer, conv2_out.dims.data(),
                   pool2_out.buffer, pool2_out.dims.data());
 
-    s = 0.0f;
-    for(auto out : pool2_out.buffer)
-    {
-        s += out;   
-    }
-    std::cerr << "pool2 out sum: " << s << '\n';
-
-    auto t_pool2 = pool2_t.stop();
-    StopWatch<> fc1_t;
+//    s = 0.0f;
+//    for(auto out : pool2_out.buffer)
+//    {
+//        s += out;   
+//    }
+//    std::cerr << "pool2 out sum: " << s << '\n';
+//
+//    auto t_pool2 = pool2_t.stop();
+//    StopWatch<> fc1_t;
 
     fc_seq(pool2_out.buffer, (pool2_out.dims[0]*pool2_out.dims[1]*pool2_out.dims[2]),
            dens1_out.buffer, dens1_out.dims[0],
            wd1.buffer, bd1.buffer);
     
-    s = 0.0f;
-    for(auto out : dens1_out.buffer)
-    {
-        s += out;
-    }
-    std::cerr << "dens1 out sum: " << s << '\n';
-
-    auto t_fc1 = fc1_t.stop();
-    StopWatch<> fc2_t;
+//    s = 0.0f;
+//    for(auto out : dens1_out.buffer)
+//    {
+//        s += out;
+//    }
+//    std::cerr << "dens1 out sum: " << s << '\n';
+//
+//    auto t_fc1 = fc1_t.stop();
+//    StopWatch<> fc2_t;
 
     fc_seq(dens1_out.buffer, dens1_out.dims[0],
            class_out.buffer, class_out.dims[0],
            wdo.buffer, bdo.buffer);
 
-    auto t_fc2 = fc2_t.stop();
-    StopWatch<> softmax_t;
+//    auto t_fc2 = fc2_t.stop();
+//    StopWatch<> softmax_t;
 
     softmax_seq(class_out.buffer, class_out.dims[0], class_out.buffer);
 
-    auto t_soft = softmax_t.stop();
-    auto cpu_elapsed = timer.stop();
-    std::cout << "Total Elapsed Time: " << cpu_elapsed << " us" << '\n';
-    std::cout << "CPU Elapsed Timings: \n";
-    std::cout << "conv1: " << t_conv1 << "\tus"  << '\n';
-    std::cout << "pool1: " << t_pool1 << "\tus"  << '\n';
-    std::cout << "conv2: " << t_conv2 << "\tus"  << '\n';
-    std::cout << "pool2: " << t_pool2 << "\tus"  << '\n';
-    std::cout << "fc1  : " << t_fc1   << "\tus"  << '\n';
-    std::cout << "fc2  : " << t_fc2   << "\tus"  << '\n';
-    std::cout << "soft : " << t_soft  << "\tus"  << '\n';
-    std::cout << std::endl;
-
-    std::size_t class_no = 0;
-    std::cout << std::fixed << std::setprecision(3);
-    for(auto c : class_out.buffer)
-    {
-        std::cout << "Number: " << class_no << "\t\t\t Confidence: %" << c * 100 << '\n';
-        ++class_no;
-    }
-    std::cout << std::scientific << std::setprecision(6) << std::endl;
+//    auto t_soft = softmax_t.stop();
+//    auto cpu_elapsed = timer.stop();
+//    std::cout << "Total Elapsed Time: " << cpu_elapsed << " us" << '\n';
+//    std::cout << "CPU Elapsed Timings: \n";
+//    std::cout << "conv1: " << t_conv1 << "\tus"  << '\n';
+//    std::cout << "pool1: " << t_pool1 << "\tus"  << '\n';
+//    std::cout << "conv2: " << t_conv2 << "\tus"  << '\n';
+//    std::cout << "pool2: " << t_pool2 << "\tus"  << '\n';
+//    std::cout << "fc1  : " << t_fc1   << "\tus"  << '\n';
+//    std::cout << "fc2  : " << t_fc2   << "\tus"  << '\n';
+//    std::cout << "soft : " << t_soft  << "\tus"  << '\n';
+//    std::cout << std::endl;
 
     return class_out;
 }

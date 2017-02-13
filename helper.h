@@ -23,3 +23,4 @@ cl_kernel get_kernel_from_vec(const std::vector<cl_kernel>& kernels, const std::
 
 const char *oclErrorCode(cl_int code);
 
+void print_classes(const std::vector<float>& cls);

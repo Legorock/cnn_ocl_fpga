@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iomanip>
 
+#include "DataBlob.h"
 //#include "genData.h"
 #include "seq.h"
 #include "seq_cnn.h"
@@ -17,12 +18,13 @@
 #include "helper.h"
 #include "Measure.h"
 
+typedef DataBlob<float> Data;
+
 template<typename T>
 inline static void print_buf(std::ostream& o, const T *  buf, 
         const std::vector<std::size_t>& dims, const std::size_t curr_dim);
 
 const std::vector<std::string> kernel_names = {"max_pool2", "conv_local", "softmax_layer", "fc"};
-//const std::vector<std::string> kernel_layers = {"max_pool", "conv", "fc", "softmax"};
 
 
 static auto absolute = [](const std::vector<float>& seq, const std::vector<float>& ocl)

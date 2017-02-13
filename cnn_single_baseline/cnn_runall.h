@@ -31,8 +31,4 @@ private:
     std::vector<std::vector<float>> test_labels;
 
     std::map<std::string, Data> model_params;
-
-private:
-//    Data seq_run_img(const Data& img);
-//    Data ocl_run_img(Data& img);
 };

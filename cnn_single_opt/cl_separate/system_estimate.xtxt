@@ -18,13 +18,13 @@ Total number of kernels: 7
 +-----------------------+------------+----------------------+-----------------+---------------+
 | Kernel Name           | Type       | Target               | OpenCL Library  | Compute Units |
 +-----------------------+------------+----------------------+-----------------+---------------+
-| fc1                   | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
-| softmax_layer         | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
-| conv1                 | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
 | fc2                   | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
 | max_pool1             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
-| max_pool2             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
 | conv2                 | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
+| softmax_layer         | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
+| conv1                 | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
+| max_pool2             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
+| fc1                   | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
 +-----------------------+------------+----------------------+-----------------+---------------+
 -------------------------------------------------------------------------------
 

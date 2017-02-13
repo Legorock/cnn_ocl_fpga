@@ -7,6 +7,10 @@
 #include <iomanip>
 #include <algorithm>
 
+
+#include "seq_cnn.h"
+#include "ocl_cnn.h"
+
 #include "ModelImporter.h"
 #include "mnist/mnist_reader_less.hpp"
 
@@ -14,6 +18,24 @@
 #include "Measure.h"
 
 const std::vector<std::string> kernel_names = {"max_pool2", "conv_local", "softmax_layer", "fc"};
+
+// Considers only images that are 28x28 like MNIST dataset images
+void mnist_img_out(std::ostream& out, const std::vector<float>& img)
+{
+    std::size_t d = 28;
+    for(std::size_t h = 0; h < d; ++h)
+    {
+        for(std::size_t w = 0; w < d; ++w)
+        {
+            if(img[w + h * d] > 0.0f)
+                out << 1 << ' ';
+            else
+                out << 0 << ' ';
+        }
+        out << '\n';
+    }
+    out << std::endl;
+}
 
 std::vector<float> imgcast_to_float(const std::vector<std::uint8_t>& img)
 {
@@ -33,25 +55,39 @@ std::vector<float> label_to_oneshot(const std::uint8_t label)
     return oneshot;
 }
 
+std::uint8_t oneshot_to_label(const std::vector<float>& oneshot)
+{
+    auto max_it = std::max_element(oneshot.begin(), oneshot.end());
+    return std::distance(oneshot.begin(), max_it);
+}
+
 std::map<std::string, Data> getModel(const std::string & model_path)
 {
     std::cout << "Importing Model...\n";
     ModelImporter importer(model_path);
     std::cout << "Model is Imported!\n";
     return importer.get_buffers();
-
-//    std::map<std::string, Data> model;
-//    model["wc1"] = importer.get_buffer("wc1"); // Conv1 weights
-//    model["bc1"] = importer.get_buffer("bc1"); // Conv1 biases
-//    model["wc2"] = importer.get_buffer("wc2"); // Conv2 weights
-//    model["bc2"] = importer.get_buffer("bc2"); // Conv2 biases
-//    model["wd1"] = importer.get_buffer("wd1"); // FullyConn. (dense) weights
-//    model["bd1"] = importer.get_buffer("bd1"); // FullyConn. (dense) biases
-//    model["wdo"] = importer.get_buffer("wdo"); // FullyConn. out (dense) weights
-//    model["bdo"] = importer.get_buffer("bdo"); // FullyConn. out (dense) biases
-//    return model;
 }
 
+//float getAccuracy(const std::vector<std::uint8_t> & preds, const std::vector<std::uint8_t> & labels)
+float getAccuracy(const std::vector<std::vector<float>> & preds, const std::vector<std::vector<float>> & labels)
+{
+    std::size_t num_correct = 0;
+    if(preds.size() != labels.size()) 
+    {
+        std::cerr << "Num of predictions and number of labels do not match!!\n"
+                  << "Terminating....\n";
+        std::exit(EXIT_FAILURE);
+    }
+    for(std::size_t i = 0; i < preds.size(); ++i)
+    {
+        auto pl = oneshot_to_label(preds[i]);
+        auto ll = oneshot_to_label(labels[i]);
+
+        if(pl == ll) num_correct++;
+    }
+    return static_cast<float>(num_correct) / preds.size();
+}
 // Constructor
 cnn_runall::cnn_runall(xcl_world & world, const char * clFilename, bool isBinary)
     : m_world(world), model_params(getModel("../lenet_data/model.csv"))
@@ -103,19 +139,50 @@ cnn_runall::~cnn_runall()
 
 float cnn_runall::run_all()
 {
+    std::cout << "ALL MNIST Run...\n";
+    const std::size_t num_test = 10;
+
+    std::vector<std::vector<float>> seq_class;
+    std::vector<std::vector<float>> ocl_class;
+    seq_class.reserve(num_test);
+    ocl_class.reserve(num_test);
+    //seq_class.reserve(test_imgs.size());
+    //ocl_class.reserve(test_imgs.size());
+    
+    auto partial_test_imgs = std::vector<std::vector<float>>(num_test);
+    std::copy(test_imgs.begin(), test_imgs.begin()+num_test, partial_test_imgs.begin());
+    auto partial_test_labels = std::vector<std::vector<float>>(num_test);
+    std::copy(test_labels.begin(), test_labels.begin()+num_test, partial_test_labels.begin());
+
+    oclCNN cnn_dev(model_params, m_world, kernels);
+    
+
+//    for(auto & in_img : test_imgs)
+    for(auto & in_img : partial_test_imgs)
+    {
+        DataBlob<float> img = {in_img, {28, 28, 1}};
+//        img.buffer = in_img;
+//        img.dims = {28, 28, 1};
+
+//        auto seq_img_class = seq_cnn_img_test(img, model_params);
+//        seq_class.push_back(seq_img_class.buffer);
+
+//        auto ocl_img_class = ocl_cnn_img_test(img, model_params, m_world, kernels);
+        auto ocl_img_class = cnn_dev.runImg(img);
+        ocl_class.push_back(ocl_img_class.buffer);
+    }
+
+    std::cout << std::fixed << std::setprecision(4);
+//    oclCNN device_cnn(model_params, m_world, kernels);
+//    DataBlob<float> img = {test_imgs[0], {28, 28, 1}};
+//    auto ocl_img_class = device_cnn.runImg(img);
+//    for(auto c : ocl_img_class.buffer)
+//    {
+//        std::cout << c << ' ';
+//    }std::cout << std::endl;
+//    std::cout << "Sequential CPU run accuracy: " << getAccuracy(seq_class, test_labels) * 100 << "%" << std::endl;
+//    std::cout << "OpenCL run accuracy: " << getAccuracy(ocl_class, test_labels) * 100 << "%" << std::endl;
+    std::cout << "OpenCL run accuracy: " << getAccuracy(ocl_class, partial_test_labels) * 100 << "%" << std::endl;
     return 0.0f;
 }
-
-//Data cnn_runall::seq_run_img(const Data& img)
-//{
-//    Data d;
-//    return d;
-//}
-//
-//Data cnn_runall::ocl_run_img(Data& img)
-//{
-//    Data d;
-//    return d;
-//}
-
 

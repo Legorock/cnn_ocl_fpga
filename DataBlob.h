@@ -23,7 +23,6 @@ struct clDataBlob
 };
 
 template<typename T>
-//std::size_t getTotalSize(const clDataBlob<T> & dblob)
 std::size_t getTotalSize(const T & dblob)
 {
     std::size_t tot_size = 1;

@@ -337,7 +337,9 @@ cl_mem xcl_malloc(xcl_world world, cl_mem_flags flags, size_t size) {
 
 void xcl_memcpy_to_device(xcl_world world, cl_mem dest, void* src,
                           size_t size) {
-	int err = clEnqueueWriteBuffer(world.command_queue, dest, CL_TRUE, 0, size,
+//	int err = clEnqueueWriteBuffer(world.command_queue, dest, CL_TRUE, 0, size,
+//	                               src, 0, NULL, NULL);
+	int err = clEnqueueWriteBuffer(world.command_queue, dest, CL_FALSE, 0, size,
 	                               src, 0, NULL, NULL);
 	if (err != CL_SUCCESS) {
 		printf("Error: Failed to write to source array a!\n");
@@ -348,7 +350,9 @@ void xcl_memcpy_to_device(xcl_world world, cl_mem dest, void* src,
 
 void xcl_memcpy_from_device(xcl_world world, void* dest, cl_mem src,
                             size_t size) {
-	int err = clEnqueueReadBuffer(world.command_queue, src, CL_TRUE, 0, size,
+//	int err = clEnqueueReadBuffer(world.command_queue, src, CL_TRUE, 0, size,
+//	                              dest, 0, NULL, NULL);
+	int err = clEnqueueReadBuffer(world.command_queue, src, CL_FALSE, 0, size,
 	                              dest, 0, NULL, NULL);
 	if (err != CL_SUCCESS) {
 		printf("Error: Failed to read output array! %d\n", err);

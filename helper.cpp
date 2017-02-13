@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <iomanip>
 
 static void* smalloc(size_t size) 
 {
@@ -198,5 +199,17 @@ cl_kernel get_kernel_from_vec(const std::vector<cl_kernel>& kernels, const std::
     std::cerr << "the kernel doesn't exist in the kernels(vector)!\n";
     std::exit(EXIT_FAILURE);
     return nullptr;
+}
+
+void print_classes(const std::vector<float> & cls)
+{
+    std::size_t class_no = 0;
+    std::cout << std::fixed << std::setprecision(3);
+    for(auto c : cls)
+    {
+        std::cout << "Number: " << class_no << "\t\t\t Confidence: %" << c * 100 << '\n';
+        ++class_no;
+    }
+    std::cout << std::scientific << std::setprecision(6) << std::endl;
 }
 
