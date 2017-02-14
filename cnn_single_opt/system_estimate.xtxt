@@ -13,15 +13,18 @@ Target Clock:     250MHz
 -------------------------------------------------------------------------------
 Kernel Summary
 
-Total number of kernels: 4
+Total number of kernels: 7
 
 +-----------------------+------------+----------------------+-----------------+---------------+
 | Kernel Name           | Type       | Target               | OpenCL Library  | Compute Units |
 +-----------------------+------------+----------------------+-----------------+---------------+
-| fc                    | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 4             |
-| conv_local            | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 4             |
-| softmax_layer         | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 4             |
-| max_pool2             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 4             |
+| fc2                   | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
+| max_pool1             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
+| softmax_layer         | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
+| max_pool2             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
+| conv2                 | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
+| conv1                 | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
+| fc1                   | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 7             |
 +-----------------------+------------+----------------------+-----------------+---------------+
 -------------------------------------------------------------------------------
 
@@ -35,9 +38,12 @@ Timing Information (MHz)
 | Compute Unit         | Kernel Name             | Target Frequency        | Estimated Frequency     |
 +----------------------+-------------------------+-------------------------+-------------------------+
 | softmax_layer_1      | softmax_layer           | 250                     | 342.466                 |
+| max_pool1_1          | max_pool1               | 250                     | 342.466                 |
 | max_pool2_1          | max_pool2               | 250                     | 342.466                 |
-| conv_local_1         | conv_local              | 250                     | 283.286                 |
-| fc_1                 | fc                      | 250                     | 342.466                 |
+| conv1_1              | conv1                   | 250                     | 261.097                 |
+| conv2_1              | conv2                   | 250                     | 261.097                 |
+| fc1_1                | fc1                     | 250                     | 315.457                 |
+| fc2_1                | fc2                     | 250                     | 315.457                 |
 +----------------------+-------------------------+-------------------------+-------------------------+
 
 Latency Information (clock cycles)
@@ -45,9 +51,12 @@ Latency Information (clock cycles)
 | Compute Unit         | Kernel Name          | Start Interval       | Best Case            | Avg Case             | Worst Case           |
 +----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
 | softmax_layer_1      | softmax_layer        | 429                  | 428                  | 428                  | 428                  |
-| max_pool2_1          | max_pool2            | 557                  | 556                  | 556                  | 556                  |
-| conv_local_1         | conv_local           | undef                | undef                | undef                | undef                |
-| fc_1                 | fc                   | 449 ~ 1311433        | 448                  | undef                | 1311432              |
+| max_pool1_1          | max_pool1            | 540                  | 539                  | 539                  | 539                  |
+| max_pool2_1          | max_pool2            | 539                  | 538                  | 538                  | 538                  |
+| conv1_1              | conv1                | undef                | undef                | undef                | undef                |
+| conv2_1              | conv2                | undef                | undef                | undef                | undef                |
+| fc1_1                | fc1                  | 74022                | 74021                | 74021                | 74021                |
+| fc2_1                | fc2                  | 295206               | 295205               | 295205               | 295205               |
 +----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
 
 Area Information
@@ -55,8 +64,11 @@ Area Information
 | Compute Unit         | Kernel Name          | FF         | LUT        | DSP        | BRAM       |
 +----------------------+----------------------+------------+------------+------------+------------+
 | softmax_layer_1      | softmax_layer        | 3027       | 3865       | 9          | 2          |
-| max_pool2_1          | max_pool2            | 3633       | 4258       | 32         | 2          |
-| conv_local_1         | conv_local           | 13922      | 13733      | 28         | 9          |
-| fc_1                 | fc                   | 3151       | 3551       | 7          | 2          |
+| max_pool1_1          | max_pool1            | 3307       | 4142       | 0          | 2          |
+| max_pool2_1          | max_pool2            | 2940       | 3494       | 0          | 2          |
+| conv1_1              | conv1                | 13416      | 13598      | 7          | 9          |
+| conv2_1              | conv2                | 13239      | 13318      | 7          | 9          |
+| fc1_1                | fc1                  | 2680       | 2807       | 5          | 2          |
+| fc2_1                | fc2                  | 2682       | 2817       | 5          | 2          |
 +----------------------+----------------------+------------+------------+------------+------------+
 -------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 SDAccel Profile Summary
-Generated on: 2017-02-13 16:19:17
+Generated on: 2017-02-14 22:49:50
 Profiled application: cnn
 Target platform: Xilinx
 Target devices: xilinx:adm-pcie-ku3:2ddr:3.0-0
@@ -8,114 +8,101 @@ Tool version: 2016.2
 
 OpenCL API Calls
 API Name,Number Of Calls,Total Time (ms),Minimum Time (ms),Average Time (ms),Maximum Time (ms),
-clCreateProgramWithBinary,1,11258.6,11258.6,11258.6,11258.6,
-clCreateContext,1,10089.1,10089.1,10089.1,10089.1,
-clFinish,20,2416.88,0.084029,120.844,243.29,
-clEnqueueNDRangeKernel,70,2.25225,0.004721,0.032175,0.109107,
-clEnqueueWriteBuffer,18,0.764755,0.004805,0.0424864,0.102143,
-clSetKernelArg,300,0.155452,0.000421,0.000518173,0.005236,
-clGetPlatformIDs,3,0.136016,0.001227,0.0453387,0.128822,
-clEnqueueReadBuffer,10,0.059859,0.005473,0.0059859,0.006901,
-clGetEventProfilingInfo,140,0.053038,0.000285,0.000378843,0.001598,
-clReleaseMemObject,15,0.031139,0.000966,0.00207593,0.006572,
-clCreateBuffer,25,0.021891,0.000353,0.00087564,0.001889,
-clCreateKernel,4,0.012742,0.001531,0.0031855,0.005515,
-clGetKernelInfo,20,0.011897,0.000324,0.00059485,0.004815,
-clReleaseKernel,4,0.007759,0.001191,0.00193975,0.003283,
-clReleaseCommandQueue,1,0.004128,0.004128,0.004128,0.004128,
-clCreateCommandQueue,1,0.003928,0.003928,0.003928,0.003928,
-clGetDeviceInfo,1,0.002862,0.002862,0.002862,0.002862,
-clGetPlatformInfo,1,0.002345,0.002345,0.002345,0.002345,
-clBuildProgram,1,0.00225,0.00225,0.00225,0.00225,
-clGetKernelWorkGroupInfo,4,0.002063,0.000281,0.00051575,0.000952,
-clReleaseContext,1,0.001975,0.001975,0.001975,0.001975,
-clGetDeviceIDs,1,0.001531,0.001531,0.001531,0.001531,
+clCreateProgramWithBinary,1,11257.1,11257.1,11257.1,11257.1,
+clCreateContext,1,10035.7,10035.7,10035.7,10035.7,
+clFinish,2,201.616,0.143353,100.808,201.473,
+clEnqueueWriteBuffer,9,0.710962,0.016275,0.0789958,0.103714,
+clEnqueueNDRangeKernel,7,0.59392,0.067593,0.0848457,0.099467,
+clGetPlatformIDs,3,0.158014,0.001217,0.0526713,0.150659,
+clReleaseMemObject,15,0.028333,0.00098,0.00188887,0.005574,
+clSetKernelArg,30,0.015089,0.00043,0.000502967,0.001185,
+clCreateKernel,4,0.012993,0.001515,0.00324825,0.005452,
+clGetKernelInfo,20,0.012282,0.00033,0.0006141,0.005122,
+clCreateBuffer,16,0.010306,0.000354,0.000644125,0.002256,
+clReleaseKernel,4,0.007183,0.001054,0.00179575,0.002969,
+clReleaseCommandQueue,1,0.006338,0.006338,0.006338,0.006338,
+clEnqueueReadBuffer,1,0.006079,0.006079,0.006079,0.006079,
+clGetEventProfilingInfo,14,0.005577,0.000283,0.000398357,0.001465,
+clCreateCommandQueue,1,0.003843,0.003843,0.003843,0.003843,
+clGetDeviceInfo,1,0.003096,0.003096,0.003096,0.003096,
+clGetPlatformInfo,1,0.002537,0.002537,0.002537,0.002537,
+clBuildProgram,1,0.002095,0.002095,0.002095,0.002095,
+clGetKernelWorkGroupInfo,4,0.002089,0.000291,0.00052225,0.001055,
+clGetDeviceIDs,1,0.001551,0.001551,0.001551,0.001551,
+clReleaseContext,1,0.000721,0.000721,0.000721,0.000721,
 
 
 Kernel Execution
 Kernel,Number Of Enqueues,Total Time (ms),Minimum Time (ms),Average Time (ms),Maximum Time (ms),
-conv_local,20,2206.77,38.0497,110.338,182.581,
-fc,20,183.54,0.249133,9.17701,18.1436,
-max_pool2,20,23.8469,0.436927,1.19235,1.96436,
-softmax_layer,10,0.159607,0.015505,0.0159607,0.017971,
+conv_local,2,178.655,27.6116,89.3276,151.044,
+fc,2,18.3563,0.250317,9.17813,18.1059,
+max_pool2,2,2.38777,0.451813,1.19389,1.93596,
+softmax_layer,1,0.020791,0.020791,0.020791,0.020791,
 
 
 Compute Unit Utilization
 Device,Compute Unit,Kernel,Global Work Size,Local Work Size,Number Of Calls,Total Time (ms),Minimum Time (ms),Average Time (ms),Maximum Time (ms),
-xilinx:adm-pcie-ku3:2ddr:3.0-0,conv_local_1,conv_local,24:24:32,4:4:2,5760,362.223,0.061522,0.062886,0.081678,
-xilinx:adm-pcie-ku3:2ddr:3.0-0,conv_local_1,conv_local,8:8:64,4:4:2,1280,1821.04,1.41976,1.42269,1.44196,
-xilinx:adm-pcie-ku3:2ddr:3.0-0,fc_1,fc,10:1:1,2:1:1,50,2.34404,0.045732,0.0468808,0.047949,
-xilinx:adm-pcie-ku3:2ddr:3.0-0,fc_1,fc,256:1:1,2:1:1,1280,177.182,0.137046,0.138423,0.156762,
-xilinx:adm-pcie-ku3:2ddr:3.0-0,max_pool2_1,max_pool2,12:12:32,4:4:4,720,17.1317,0.022486,0.023794,0.045285,
-xilinx:adm-pcie-ku3:2ddr:3.0-0,max_pool2_1,max_pool2,4:4:64,4:4:4,160,3.87414,0.023193,0.0242134,0.02578,
-xilinx:adm-pcie-ku3:2ddr:3.0-0,softmax_layer_1,softmax_layer,1:1:1,1:1:1,10,0.119806,0.011749,0.0119806,0.012758,
+xilinx:adm-pcie-ku3:2ddr:3.0-0,conv_local_1,conv_local,24:24:32,4:4:4,288,26.6305,0.09017,0.0924671,0.111849,
+xilinx:adm-pcie-ku3:2ddr:3.0-0,conv_local_1,conv_local,8:8:64,4:4:4,64,150.828,2.31592,2.35669,2.39218,
+xilinx:adm-pcie-ku3:2ddr:3.0-0,fc_1,fc,10:1:1,2:1:1,5,0.234252,0.046484,0.0468504,0.047909,
+xilinx:adm-pcie-ku3:2ddr:3.0-0,fc_1,fc,256:1:1,2:1:1,128,17.7269,0.137454,0.138491,0.142308,
+xilinx:adm-pcie-ku3:2ddr:3.0-0,max_pool2_1,max_pool2,12:12:32,4:4:4,72,1.70966,0.022509,0.0237453,0.02614,
+xilinx:adm-pcie-ku3:2ddr:3.0-0,max_pool2_1,max_pool2,4:4:64,4:4:4,16,0.394647,0.023341,0.0246654,0.027654,
+xilinx:adm-pcie-ku3:2ddr:3.0-0,softmax_layer_1,softmax_layer,1:1:1,1:1:1,1,0.015457,0.015457,0.015457,0.015457,
 
 
 Data Transfer: Host and Global Memory
 Context:Number of Devices,Transfer Type,Number Of Transfers,Transfer Rate (MB/s),Average Bandwidth Utilization (%),Average Size (KB),Total Time (ms),Average Time (ms),
-context0:1,READ,10,0.771825,0.015437,0.04,0.518252,0.051825,
-context0:1,WRITE,18,2127.695383,42.553908,72.2013,0.610813,0.033934,
+context0:1,READ,1,0.503740,0.010075,0.04,0.079406,0.079406,
+context0:1,WRITE,9,2478.720127,49.574403,141.267,0.512926,0.056992,
 
 
 Data Transfer: Kernels and Global Memory
 Device,Transfer Type,Number Of Transfers,Transfer Rate (MB/s),Average Bandwidth Utilization (%),Average Size (KB),Average Time (ns),
-xilinx:adm-pcie-ku3:2ddr:3.0-0,READ,43498814,83.6607,0.871466,0.00465288,241.244,
-xilinx:adm-pcie-ku3:2ddr:3.0-0,WRITE,282940,0.470166,0.00489756,0.00402007,481.754,
+xilinx:adm-pcie-ku3:2ddr:3.0-0,READ,4331099,93.0355,0.96912,0.00432787,244.684,
+xilinx:adm-pcie-ku3:2ddr:3.0-0,WRITE,28294,0.564554,0.00588077,0.00402007,481.565,
 
 
 Top Data Transfer: Kernels and Global Memory
 Device,Kernel Name,Number of Transfers,Average Bytes per Transfer,Transfer Efficiency (%),Total Data Transfer (MB),Total Write (MB),Total Read (MB),Transfer Rate (MB/s),Average Bandwidth Utilization (%),
-xilinx:adm-pcie-ku3:2ddr:3.0-0,ALL,43781754,4.64879,0.113496,203.532,1.13744,202.395,42.0654,0.438182,
+xilinx:adm-pcie-ku3:2ddr:3.0-0,ALL,4359393,4.32587,0.105612,18.8582,0.113744,18.7444,46.8,0.487501,
 
 
 Top Kernel Execution
 Kernel Instance Address,Kernel,Context ID,Command Queue ID,Device Name,Start Time (ms),Duration (ms),Global Work Size,Local Work Size,
-31879944,conv_local,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,22883.5,182.581,8:8:64,4:4:2,
-31879944,conv_local,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,24335.4,182.561,8:8:64,4:4:2,
-31879944,conv_local,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,25060.9,182.554,8:8:64,4:4:2,
-31879944,conv_local,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,24577.2,182.546,8:8:64,4:4:2,
-31879944,conv_local,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,24819.1,182.539,8:8:64,4:4:2,
-31879944,conv_local,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,24093.6,182.534,8:8:64,4:4:2,
-31879944,conv_local,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,23126.8,182.531,8:8:64,4:4:2,
-31879944,conv_local,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,23851.9,182.519,8:8:64,4:4:2,
-31879944,conv_local,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,23610.1,182.518,8:8:64,4:4:2,
-31879944,conv_local,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,23368.5,182.513,8:8:64,4:4:2,
+35140360,conv_local,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,22817.9,151.044,8:8:64,4:4:4,
+35140360,conv_local,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,22787.8,27.6116,24:24:32,4:4:4,
+38760072,fc,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,22970.3,18.1059,256:1:1,2:1:1,
+35137144,max_pool2,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,22815.5,1.93596,12:12:32,4:4:4,
+35137144,max_pool2,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,22969,0.451813,4:4:64,4:4:4,
+38760072,fc,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,22988.9,0.250317,10:1:1,2:1:1,
+35144136,softmax_layer,0,0,xilinx:adm-pcie-ku3:2ddr:3.0-0,22989.2,0.020791,1:1:1,1:1:1,
 
 
 Top Buffer Writes
 Buffer Address,Context ID,Command Queue ID,Start Time (ms),Duration (ms),Buffer Size (KB),Writing Rate(MB/s),
-31884776,0,0,22842.1,0.381621,1048.58,2747.69,
-31902376,0,0,22841.9,0.070744,204.8,2894.95,
-31905000,0,0,22841.8,0.020217,3.2,158.283,
-31882952,0,0,22842.5,0.01402,10.24,730.385,
-32025896,0,0,24295.2,0.013878,3.136,225.969,
-32007544,0,0,23811.7,0.013451,3.136,233.143,
-32043752,0,0,24778.8,0.012833,3.136,244.37,
-32034824,0,0,24537.1,0.010133,3.136,309.484,
-82178072,0,0,23086.6,0.009774,3.136,320.851,
-32052824,0,0,25020.6,0.008913,3.136,351.846,
+35165256,0,0,22786.8,0.376677,1048.58,2783.75,
+35142360,0,0,22786.6,0.071879,204.8,2849.23,
+35141160,0,0,22786.5,0.019055,3.2,167.935,
+38746216,0,0,22787.3,0.01366,10.24,749.634,
+35143432,0,0,22787.2,0.00864,1.024,118.519,
+35145080,0,0,22786.6,0.00609,0.128,21.0181,
+35135496,0,0,22786.8,0.006057,0.256,42.2651,
+35137912,0,0,22787.3,0.005836,0.04,6.85401,
+38769656,0,0,22787.3,0.005032,3.136,623.211,
 
 
 Top Buffer Reads
 Buffer Address,Context ID,Command Queue ID,Start Time (ms),Duration (ms),Buffer Size (KB),Reading Rate(MB/s),
-35501992,0,0,23811.5,0.08274,0.04,0.483442,
-35501992,0,0,24295,0.080664,0.04,0.495884,
-35501992,0,0,23328.2,0.080241,0.04,0.498498,
-35501992,0,0,25262.4,0.080021,0.04,0.499869,
-35501992,0,0,24778.6,0.079749,0.04,0.501574,
-35501992,0,0,24536.9,0.026056,0.04,1.53516,
-35501992,0,0,23569.9,0.023603,0.04,1.6947,
-35501992,0,0,25020.5,0.022535,0.04,1.77502,
-35501992,0,0,24053.3,0.0224,0.04,1.78571,
-35501992,0,0,23086.4,0.020243,0.04,1.97599,
+38763304,0,0,22989.3,0.079406,0.04,0.50374,
 
 
 PRC Parameters
 Parameter,Element,Value,
-DEVICE_EXEC_TIME,xilinx:adm-pcie-ku3:2ddr:3.0-0,2419.231591,
-CU_CALLS,xilinx:adm-pcie-ku3:2ddr:3.0-0|conv_local_1,5760,
-CU_CALLS,xilinx:adm-pcie-ku3:2ddr:3.0-0|fc_1,50,
-CU_CALLS,xilinx:adm-pcie-ku3:2ddr:3.0-0|max_pool2_1,720,
-CU_CALLS,xilinx:adm-pcie-ku3:2ddr:3.0-0|softmax_layer_1,10,
+DEVICE_EXEC_TIME,xilinx:adm-pcie-ku3:2ddr:3.0-0,201.475943,
+CU_CALLS,xilinx:adm-pcie-ku3:2ddr:3.0-0|conv_local_1,288,
+CU_CALLS,xilinx:adm-pcie-ku3:2ddr:3.0-0|fc_1,5,
+CU_CALLS,xilinx:adm-pcie-ku3:2ddr:3.0-0|max_pool2_1,72,
+CU_CALLS,xilinx:adm-pcie-ku3:2ddr:3.0-0|softmax_layer_1,1,
 
 

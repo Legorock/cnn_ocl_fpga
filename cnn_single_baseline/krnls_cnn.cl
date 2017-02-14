@@ -90,7 +90,7 @@ void conv_layer(__global DATA_TYPE * in, __global DATA_TYPE * out,
 // and 'VALID' padding policy
 #define CONV_WG_X 4
 #define CONV_WG_Y 4
-#define CONV_WG_Z 2
+#define CONV_WG_Z 4
 
 #define MASK_SIZE 5
 

@@ -140,7 +140,7 @@ cnn_runall::~cnn_runall()
 float cnn_runall::run_all()
 {
     std::cout << "ALL MNIST Run...\n";
-    const std::size_t num_test = 1;
+    const std::size_t num_test = 10;
 
     std::vector<std::vector<float>> seq_class;
     std::vector<std::vector<float>> ocl_class;

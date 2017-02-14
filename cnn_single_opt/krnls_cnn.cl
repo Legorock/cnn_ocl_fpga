@@ -22,115 +22,98 @@ size_t getIdx3D(const size_t z, const size_t y, const size_t x,
     return x + y * (width) + z * (width * height);
 }
 
-// Max pooling layer with
+// Max pooling layer 1 with
 // poolsize: 2x2
 // stride equal to poolsize
 // and 'SAME' padding policy
+// 24x24 --> 12x12 
+// (num of feature maps defined by 3rd dim of global work size)
+__kernel __attribute__((reqd_work_group_size(4, 4, 4)))
+void max_pool1(__global DATA_TYPE * in, __global DATA_TYPE * out)
+{
+    size_t w = get_global_id(0);
+    size_t h = get_global_id(1);
+    size_t d = get_global_id(2);
+    size_t idx_tl = w*2 + 24 * (h*2 + d * 24);
+    size_t idx_tr = w*2 + 1 + 24 * (h*2 + d * 24);
+    size_t idx_bl = w*2 + 24 * (h*2 + 1 + d * 24);
+    size_t idx_br = w*2 + 1 + 24 * (h*2 + 1 + d * 24);
+    size_t out_idx = w + 12 * (h + d * 12);
+
+    out[out_idx] = max(in[idx_tl], max(in[idx_tr], max(in[idx_bl], in[idx_br])));
+    return;
+}
+
+// Max pooling layer 2 with
+// poolsize: 2x2
+// stride equal to poolsize
+// and 'SAME' padding policy
+// 8x8 --> 4x4 
+// (num of feature maps defined by 3rd dim of global work size)
 __kernel __attribute__((reqd_work_group_size(4, 4, 4)))
 void max_pool2(__global DATA_TYPE * in, __global DATA_TYPE * out)
 {
     size_t w = get_global_id(0);
     size_t h = get_global_id(1);
     size_t d = get_global_id(2);
-    size_t owidth = get_global_size(0);
-    size_t oheight = get_global_size(1);
-    size_t iwidth = owidth * 2;
-    size_t iheight = oheight * 2;
-
-    size_t idx_tl = w*2 + iwidth * (h*2 + d * iheight);
-    size_t idx_tr = w*2 + 1 + iwidth * (h*2 + d * iheight);
-    size_t idx_bl = w*2 + iwidth * (h*2 + 1 + d * iheight);
-    size_t idx_br = w*2 + 1 + iwidth * (h*2 + 1 + d * iheight);
-    size_t out_idx = w + owidth * (h + d * oheight);
+    size_t idx_tl = w*2 + 8 * (h*2 + d * 8);
+    size_t idx_tr = w*2 + 1 + 8 * (h*2 + d * 8);
+    size_t idx_bl = w*2 + 8 * (h*2 + 1 + d * 8);
+    size_t idx_br = w*2 + 1 + 8 * (h*2 + 1 + d * 8);
+    size_t out_idx = w + 4 * (h + d * 4);
 
     out[out_idx] = max(in[idx_tl], max(in[idx_tr], max(in[idx_bl], in[idx_br])));
     return;
 }
 
-/*
-// Conv layer with
+// Conv layer 1 with local memory
 // kernel mask: 5x5
 // stride: 1
 // and 'VALID' padding policy
-__kernel
-void conv_layer(__global DATA_TYPE * in, __global DATA_TYPE * out,
-            __constant DATA_TYPE * weight, __constant DATA_TYPE * biases,
-            const DATA_SHAPE in_width, const DATA_SHAPE in_height,
-            const DATA_SHAPE mask_depth)
+// 28x28x1 --> 24x24x32
+#define CONV1_WG_X  4
+#define CONV1_WG_Y  4
+#define CONV1_WG_Z  2
+#define MASK1_SIZE  5
+#define MASK1_DEPTH 32
+#define TILE1_X (CONV1_WG_X+MASK1_SIZE-1)
+#define TILE1_Y (CONV1_WG_Y+MASK1_SIZE-1)
+#define IWIDTH1  28  // Input width of convolution
+#define IHEIGHT1 28  // Input height of convolution
+#define OWIDTH1  24  // Output width of convolution
+#define OHEIGHT1 24  // Output width of convolution
+
+__kernel __attribute__((reqd_work_group_size(CONV1_WG_X, CONV1_WG_Y, CONV1_WG_Z)))
+void conv1(__global DATA_TYPE * in, __global DATA_TYPE * out,
+                __constant DATA_TYPE * weight, __constant DATA_TYPE * biases)
 {
-    size_t w = get_global_id(0);
-    size_t h = get_global_id(1);
-    size_t d = get_global_id(2);
-    size_t out_width = get_global_size(0);
-    size_t out_height = get_global_size(1);
-
-    size_t in_idx = w + in_width * (h + in_height * 0);
-
-    DATA_TYPE c = (DATA_TYPE)0;
-    for(size_t cd = 0; cd < mask_depth; ++cd)
-    {
-        for(size_t ch = 0; ch < 5; ++ch)
-        {
-            for(size_t cw = 0; cw < 5; ++cw)
-            {
-                c += in[in_idx + cw + (ch + cd * in_height) * in_width]
-                * weight[cw + (ch + cd * 5) * 5 + d * 5 * 5  * mask_depth];
-            }
-        }
-    }
-    size_t out_idx = w + out_width * (h + out_height * d);
-    out[out_idx] = c + biases[d];
-    return;
-}
-*/
-
-// Conv layer with local memory
-// kernel mask: 5x5
-// stride: 1
-// and 'VALID' padding policy
-#define CONV_WG_X 4
-#define CONV_WG_Y 4
-#define CONV_WG_Z 2
-
-#define MASK_SIZE 5
-
-#define TILE_X (CONV_WG_X+MASK_SIZE-1)
-#define TILE_Y (CONV_WG_Y+MASK_SIZE-1)
-
-__kernel __attribute__((reqd_work_group_size(CONV_WG_X, CONV_WG_Y, CONV_WG_Z)))
-void conv_local(__global DATA_TYPE * in, __global DATA_TYPE * out,
-                __constant DATA_TYPE * weight, __constant DATA_TYPE * biases,
-                const DATA_SHAPE in_width, const DATA_SHAPE in_height,
-                const DATA_SHAPE mask_depth)
-{
-    __local DATA_TYPE tile[TILE_X * TILE_Y];
+    __local DATA_TYPE tile[TILE1_X * TILE1_Y];
 
     size_t w = get_global_id(0);
     size_t h = get_global_id(1);
     size_t d = get_global_id(2);
-    size_t out_width = get_global_size(0);
-    size_t out_height = get_global_size(1);
 
     event_t event;
-    size_t in_idx = get_group_id(0) * CONV_WG_X + get_group_id(1) * CONV_WG_Y * in_width;
-    size_t out_idx = w + out_width * (h + out_height * d);
+    size_t in_idx = get_group_id(0) * CONV1_WG_X + get_group_id(1) * CONV1_WG_Y * IWIDTH1;
+    size_t out_idx = w + OWIDTH1 * (h + OHEIGHT1 * d);
 
     DATA_TYPE c = (DATA_TYPE)0;
-    for(size_t cd = 0; cd < mask_depth; ++cd)
+    __attribute__((xcl_pipeline_loop))
+    for(size_t cd = 0; cd < MASK1_DEPTH; ++cd)
     {
-        for(size_t i = 0; i < TILE_Y; ++i)
-            event = async_work_group_copy(&tile[i * TILE_X], &in[in_idx + i * in_width], TILE_X, event);
-        in_idx += in_height * in_width;
+        for(size_t i = 0; i < TILE1_Y; ++i)
+            event = async_work_group_copy(&tile[i * TILE1_X], &in[in_idx + i * IWIDTH1], TILE1_X, event);
+        in_idx += IHEIGHT1 * IWIDTH1;
 
         wait_group_events(1, &event);
         barrier(CLK_LOCAL_MEM_FENCE);
 
-        for(size_t ch = 0; ch < MASK_SIZE; ++ch)
+        for(size_t ch = 0; ch < MASK1_SIZE; ++ch)
         {
-            for(size_t cw = 0; cw < MASK_SIZE; ++cw)
+            for(size_t cw = 0; cw < MASK1_SIZE; ++cw)
             {
-                c += tile[getIdx2D(ch + get_local_id(1), cw + get_local_id(0), TILE_X)]
-                * weight[cw + (ch + cd * MASK_SIZE) * MASK_SIZE + d * MASK_SIZE * MASK_SIZE * mask_depth];
+                c += tile[getIdx2D(ch + get_local_id(1), cw + get_local_id(0), TILE1_X)]
+                * weight[cw + (ch + cd * MASK1_SIZE) * MASK1_SIZE + d * MASK1_SIZE * MASK1_SIZE * MASK1_DEPTH];
             }
         }
     }
@@ -138,51 +121,96 @@ void conv_local(__global DATA_TYPE * in, __global DATA_TYPE * out,
     return;
 }
 
+// Conv layer 2 with local memory
+// kernel mask: 5x5
+// stride: 1
+// and 'VALID' padding policy
+// 12x12x32 --> 8x8x64
+#define CONV2_WG_X  4
+#define CONV2_WG_Y  4
+#define CONV2_WG_Z  2
+#define MASK2_SIZE  5
+#define MASK2_DEPTH 64
+#define TILE2_X (CONV1_WG_X+MASK2_SIZE-1)
+#define TILE2_Y (CONV1_WG_Y+MASK2_SIZE-1)
+#define IWIDTH2  12  // Input width of convolution
+#define IHEIGHT2 12  // Input height of convolution
+#define OWIDTH2   8  // Output width of convolution
+#define OHEIGHT2  8  // Output width of convolution
+
+__kernel __attribute__((reqd_work_group_size(CONV2_WG_X, CONV2_WG_Y, CONV2_WG_Z)))
+void conv2(__global DATA_TYPE * in, __global DATA_TYPE * out,
+                __constant DATA_TYPE * weight, __constant DATA_TYPE * biases)
+{
+    __local DATA_TYPE tile[TILE2_X * TILE2_Y];
+
+    size_t w = get_global_id(0);
+    size_t h = get_global_id(1);
+    size_t d = get_global_id(2);
+
+    event_t event;
+    size_t in_idx = get_group_id(0) * CONV2_WG_X + get_group_id(1) * CONV2_WG_Y * IWIDTH2;
+    size_t out_idx = w + OWIDTH2 * (h + OHEIGHT2 * d);
+
+    DATA_TYPE c = (DATA_TYPE)0;
+    __attribute__((xcl_pipeline_loop))
+    for(size_t cd = 0; cd < MASK2_DEPTH; ++cd)
+    {
+        for(size_t i = 0; i < TILE2_Y; ++i)
+            event = async_work_group_copy(&tile[i * TILE2_X], &in[in_idx + i * IWIDTH2], TILE2_X, event);
+        in_idx += IHEIGHT2 * IWIDTH2;
+
+        wait_group_events(1, &event);
+        barrier(CLK_LOCAL_MEM_FENCE);
+
+        for(size_t ch = 0; ch < MASK2_SIZE; ++ch)
+        {
+            for(size_t cw = 0; cw < MASK2_SIZE; ++cw)
+            {
+                c += tile[getIdx2D(ch + get_local_id(1), cw + get_local_id(0), TILE2_X)]
+                * weight[cw + (ch + cd * MASK2_SIZE) * MASK2_SIZE + d * MASK2_SIZE * MASK2_SIZE * MASK2_DEPTH];
+            }
+        }
+    }
+    out[out_idx] = relu(c + biases[d]);
+    return;
+}
 
 // Fully connected layer
 // kernel launch grid based on
 // number of output neuron
 
-/*
-#define INEURON 512 // num of input neuron
-#define ONEURON 64  // num of output neuron for a work-group!
-#define N_SYNAPSES (INEURON*ONEURON)
-
-__kernel __attribute__((reqd_work_group_size(ONEURON, 1, 1)))
-void fc_local(__global DATA_TYPE * in, __global DATA_TYPE * out,
-                           __constant DATA_TYPE * weights, __constant DATA_TYPE * biases)
+#define INEURON1 1024 // num of input neuron for fc1
+#define ONEURON1 256  // num of output neuron for fc1
+// Number of work-groups is 32
+__kernel __attribute__((reqd_work_group_size((ONEURON1/32), 1, 1)))
+void fc1(__global DATA_TYPE * in, __global DATA_TYPE * out,
+        __constant DATA_TYPE * weights, __constant DATA_TYPE * biases)
 {
     size_t neuron = get_global_id(0);
-    __local DATA_TYPE neuro_cache[INEURON];
-    event_t event = async_work_group_copy(&neuro_cache[0], &in[0], INEURON, 0);
-
-    wait_group_events(1, &event); 
-    barrier(CLK_LOCAL_MEM_FENCE);
-
     DATA_TYPE n = 0;
-    for(size_t c = 0; c < INEURON; ++c)
+    __attribute__((xcl_pipeline_loop))
+    for(size_t c = 0; c < INEURON1; ++c)
     {
-        n += neuro_cache[c] * weights[neuron * INEURON + c];
+        n += in[c] * weights[neuron * INEURON1 + c];
     }
     out[neuron] = relu(n + biases[neuron]);
     return;
 }
-*/
 
-// Fully connected layer
-// kernel launch grid based on
-// number of output neuron
-
-__kernel __attribute__((reqd_work_group_size(2, 1, 1)))
-void fc(__global DATA_TYPE * in, __global DATA_TYPE * out,
-        __constant DATA_TYPE * weights, __constant DATA_TYPE * biases, 
-        const ushort in_neuron)
+#define INEURON2 256 // num of input neuron for fc2
+#define ONEURON2 10  // num of output neuron for fc2
+// Number of work-groups is 2
+__kernel __attribute__((reqd_work_group_size((ONEURON1/2), 1, 1)))
+void fc2(__global DATA_TYPE * in, __global DATA_TYPE * out,
+        __constant DATA_TYPE * weights, __constant DATA_TYPE * biases)
 {
     size_t neuron = get_global_id(0);
     DATA_TYPE n = 0;
-    for(size_t c = 0; c < in_neuron; ++c)
+    __attribute__((xcl_pipeline_loop))
+    for(size_t c = 0; c < INEURON2; ++c)
     {
-        n += in[c] * weights[neuron * in_neuron + c];
+        n += in[c] * weights[neuron * INEURON2 + c];
     }
     out[neuron] = relu(n + biases[neuron]);
     return;
