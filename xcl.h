@@ -154,9 +154,9 @@ cl_mem xcl_malloc(xcl_world world, cl_mem_flags flags, size_t size);
  *   size  - number of bytes in src to copy to dest.
  */
 void xcl_memcpy_to_device(xcl_world world, cl_mem dest, void* src,
-                          size_t size);
+                          size_t size, cl_bool is_blocking = CL_TRUE);
 void xcl_memcpy_from_device(xcl_world world, void* dest, cl_mem src,
-                            size_t size);
+                            size_t size, cl_bool is_blocking = CL_TRUE);
 
 /* xcl_run_kernel3d
  *

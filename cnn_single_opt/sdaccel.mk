@@ -46,7 +46,7 @@ $(error Environment variable XILINX_SDACCEL is required and should point to SDAc
 endif
 
 SDA_FLOW = cpu_emu
-HOST_SRCS = cnn.cpp cnn_test.cpp cnn_runall.cpp ../seq.cpp ../seq_cnn.cpp ocl_cnn.cpp ../xcl.cpp ../helper.cpp ../oclErrorCodes.cpp ../ModelImporter.cpp
+HOST_SRCS = cnn.cpp cnn_runall.cpp ../seq.cpp ../seq_cnn.cpp ocl_cnn.cpp ../xcl.cpp ../helper.cpp ../oclErrorCodes.cpp ../ModelImporter.cpp
 HOST_EXE_DIR=.
 HOST_EXE = cnn
 HOST_CFLAGS = -g -std=c++0x -Wall -DFPGA_DEVICE -DC_KERNEL -I${XILINX_SDACCEL}/runtime/include/1_2 -I..
@@ -56,6 +56,7 @@ CLCC_JOBS = 8        # number of jobs for compile and synthesis
 CLCC_OPT_LEVEL = -O3 # optimization level of the kernel source
 
 KERNEL_SRCS = krnls_cnn.cl
+//KERNEL_SRCS = emu_try.cl
 KERNEL_NAME = 
 KERNEL_DEFS = 
 KERNEL_INCS = 
@@ -83,6 +84,6 @@ else
 $(error No SDA_FLOW!)
 endif
 
-HOST_ARGS = ${XCLBIN} test
+HOST_ARGS = ${XCLBIN} 
 
 include ../../common/common.mk

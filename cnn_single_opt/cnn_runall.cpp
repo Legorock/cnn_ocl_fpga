@@ -17,7 +17,9 @@
 #include "helper.h"
 #include "Measure.h"
 
-const std::vector<std::string> kernel_names = {"max_pool2", "conv_local", "softmax_layer", "fc"};
+const std::vector<std::string> kernel_names = {"load_model_ocm", "softmax_layer", 
+                                               "max_pool1", "max_pool2", 
+                                               "conv1", "conv2", "fc1", "fc2"};
 
 // Considers only images that are 28x28 like MNIST dataset images
 void mnist_img_out(std::ostream& out, const std::vector<float>& img)
@@ -88,6 +90,15 @@ float getAccuracy(const std::vector<std::vector<float>> & preds, const std::vect
     }
     return static_cast<float>(num_correct) / preds.size();
 }
+
+// Get a xcl_world with Out Of Order command queue
+// A new OpenCL Command Queue is created!
+//xcl_world getWorldWithOOO(xcl_world world)
+//{
+//    clReleaseCommandQueue(world.command_queue);
+//
+//}
+
 // Constructor
 cnn_runall::cnn_runall(xcl_world & world, const char * clFilename, bool isBinary)
     : m_world(world), model_params(getModel("../lenet_data/model.csv"))
@@ -106,6 +117,15 @@ cnn_runall::cnn_runall(xcl_world & world, const char * clFilename, bool isBinary
         }
     }
     std::cout << "OpenCL Kernels Initialized!\n";
+//    for(auto & kernel : kernels)
+//    {
+//        std::string kernel_name = get_kernel_name(kernel);
+//        for(auto c : kernel_name)
+//        {
+//            std::cout << c << ' ';
+//        }
+//        std::cout << '\n' << "kernel name size: " << kernel_name.size() << std::endl;
+//    }
 
     std::cout << "MNIST Dataset is loading....\n";
     mnist::mnist_path = "../mnist/";
@@ -140,14 +160,12 @@ cnn_runall::~cnn_runall()
 float cnn_runall::run_all()
 {
     std::cout << "ALL MNIST Run...\n";
-    const std::size_t num_test = 10;
+    const std::size_t num_test = 1;
 
     std::vector<std::vector<float>> seq_class;
     std::vector<std::vector<float>> ocl_class;
     seq_class.reserve(num_test);
     ocl_class.reserve(num_test);
-    //seq_class.reserve(test_imgs.size());
-    //ocl_class.reserve(test_imgs.size());
     
     auto partial_test_imgs = std::vector<std::vector<float>>(num_test);
     std::copy(test_imgs.begin(), test_imgs.begin()+num_test, partial_test_imgs.begin());
@@ -155,14 +173,10 @@ float cnn_runall::run_all()
     std::copy(test_labels.begin(), test_labels.begin()+num_test, partial_test_labels.begin());
 
     oclCNN cnn_dev(model_params, m_world, kernels);
-    
 
-//    for(auto & in_img : test_imgs)
     for(auto & in_img : partial_test_imgs)
     {
         DataBlob<float> img = {in_img, {28, 28, 1}};
-//        img.buffer = in_img;
-//        img.dims = {28, 28, 1};
 
 //        auto seq_img_class = seq_cnn_img_test(img, model_params);
 //        seq_class.push_back(seq_img_class.buffer);

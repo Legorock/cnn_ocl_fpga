@@ -83,6 +83,6 @@ else
 $(error No SDA_FLOW!)
 endif
 
-HOST_ARGS = ${XCLBIN} test
+HOST_ARGS = ${XCLBIN} runall
 
 include ../../common/common.mk

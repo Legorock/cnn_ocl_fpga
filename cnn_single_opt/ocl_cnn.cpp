@@ -21,150 +21,174 @@ double getProfileFromEvent(cl_event event)
     return static_cast<double>(stop) - static_cast<double>(start);
 }
 
-DataBlob<float> ocl_cnn_img_test(DataBlob<float> & img, std::map<std::string, DataBlob<float>> & model, 
-                                 xcl_world & world, const std::vector<cl_kernel> & kernels)
-{
-    cl_kernel conv = get_kernel_from_vec(kernels, "conv_local");
-    auto conv_reqd_wg = get_kernel_reqd_wg_size(conv, world.device_id);
-    cl_kernel maxp = get_kernel_from_vec(kernels, "max_pool2");
-    auto maxp_reqd_wg = get_kernel_reqd_wg_size(maxp, world.device_id);
-    cl_kernel fc = get_kernel_from_vec(kernels, "fc");
-    auto fc_reqd_wg = get_kernel_reqd_wg_size(fc, world.device_id);
-    cl_kernel softmax = get_kernel_from_vec(kernels, "softmax_layer");
-    auto softmax_reqd_wg = get_kernel_reqd_wg_size(softmax, world.device_id);
-
-    std::cout << "Transfering image to device...\n";
-    auto cl_img = data_host_to_device(world, CL_MEM_READ_ONLY, img);
-    std::cout << "Image is transfered to device\n";
-    auto cl_wc1 = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("wc1"));  // Conv1 weights
-    auto cl_bc1 = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("bc1"));  // Conv1 biases
-    auto cl_wc2 = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("wc2"));  // Conv2 weights
-    auto cl_bc2 = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("bc2"));  // Conv2 biases
-    auto cl_wd1 = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("wd1"));  // FullyConn. (dense) weights
-    auto cl_bd1 = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("bd1"));  // FullyConn. (dense) biases
-    auto cl_wdo = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("wdo"));  // FullyConn. out (dense) weights
-    auto cl_bdo = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("bdo"));  // FullyConn. out (dense) biases
-    std::cout << "OpenCL Run Model Weights and Biases are Extracted!\n";
-
-    auto conv1_out = emptyClDataBlob<float>(world, {24, 24, 32}, CL_MEM_READ_WRITE);
-    auto pool1_out = emptyClDataBlob<float>(world, {12, 12, 32}, CL_MEM_READ_WRITE);
-    auto conv2_out = emptyClDataBlob<float>(world, {8, 8, 64}, CL_MEM_READ_WRITE);
-    auto pool2_out = emptyClDataBlob<float>(world, {4, 4, 64}, CL_MEM_READ_WRITE);
-    auto dens1_out = emptyClDataBlob<float>(world, {256}, CL_MEM_READ_WRITE);
-    auto class_out = emptyClDataBlob<float>(world, {10}, CL_MEM_READ_WRITE);
-    auto softm_out = emptyClDataBlob<float>(world, {10}, CL_MEM_WRITE_ONLY);
-    std::cout << "Intermediate data created!" << std::endl;
-
-    cl_uchar conv1_in_width   = static_cast<cl_uchar>(cl_img.dims[0]);
-    cl_uchar conv1_in_height  = static_cast<cl_uchar>(cl_img.dims[1]);
-    cl_uchar conv1_mask_depth = static_cast<cl_uchar>(cl_img.dims[2]);
-    cl_uchar conv2_in_width   = static_cast<cl_uchar>(pool1_out.dims[0]);
-    cl_uchar conv2_in_height  = static_cast<cl_uchar>(pool1_out.dims[1]);
-    cl_uchar conv2_mask_depth = static_cast<cl_uchar>(pool1_out.dims[2]);
-
-    clSetKernelArg(conv, 0, sizeof(cl_mem), &cl_img.buffer); 
-    clSetKernelArg(conv, 1, sizeof(cl_mem), &conv1_out.buffer);
-    clSetKernelArg(conv, 2, sizeof(cl_mem), &cl_wc1.buffer);
-    clSetKernelArg(conv, 3, sizeof(cl_mem), &cl_bc1.buffer);
-    clSetKernelArg(conv, 4, sizeof(cl_uchar), &conv1_in_width);
-    clSetKernelArg(conv, 5, sizeof(cl_uchar), &conv1_in_height);
-    clSetKernelArg(conv, 6, sizeof(cl_uchar), &conv1_mask_depth);
-
-    StopWatch<> timer;
-
-    size_t global[3] = {24, 24, 32};
-    auto t_conv1 = launch_kernel_async(world, conv, global, conv_reqd_wg.data());
-
-    clSetKernelArg(maxp, 0, sizeof(cl_mem), &conv1_out.buffer);
-    clSetKernelArg(maxp, 1, sizeof(cl_mem), &pool1_out.buffer);
-
-    global[0] = 12; global[1] = 12; global[2] = 32;
-    auto t_pool1 = launch_kernel_async(world, maxp, global, maxp_reqd_wg.data());
-
-    clSetKernelArg(conv, 0, sizeof(cl_mem), &pool1_out.buffer);
-    clSetKernelArg(conv, 1, sizeof(cl_mem), &conv2_out.buffer);
-    clSetKernelArg(conv, 2, sizeof(cl_mem), &cl_wc2.buffer);
-    clSetKernelArg(conv, 3, sizeof(cl_mem), &cl_bc2.buffer);
-    clSetKernelArg(conv, 4, sizeof(cl_uchar), &conv2_in_width);
-    clSetKernelArg(conv, 5, sizeof(cl_uchar), &conv2_in_height);
-    clSetKernelArg(conv, 6, sizeof(cl_uchar), &conv2_mask_depth);
-
-    global[0] = 8; global[1] = 8; global[2] = 64;
-    auto t_conv2 = launch_kernel_async(world, conv, global, conv_reqd_wg.data());
-
-    clSetKernelArg(maxp, 0, sizeof(cl_mem), &conv2_out.buffer);
-    clSetKernelArg(maxp, 1, sizeof(cl_mem), &pool2_out.buffer);
-
-    global[0] = 4; global[1] = 4; global[2] = 64;
-    auto t_pool2 = launch_kernel_async(world, maxp, global, maxp_reqd_wg.data());
-
-    cl_ushort in_neuron1 = static_cast<cl_ushort>(4 * 4 * 64);
-
-    clSetKernelArg(fc, 0, sizeof(cl_mem), &pool2_out.buffer);
-    clSetKernelArg(fc, 1, sizeof(cl_mem), &dens1_out.buffer);
-    clSetKernelArg(fc, 2, sizeof(cl_mem), &cl_wd1.buffer);
-    clSetKernelArg(fc, 3, sizeof(cl_mem), &cl_bd1.buffer);
-    clSetKernelArg(fc, 4, sizeof(cl_ushort), &in_neuron1);
-
-    global[0] = 256; global[1] = 1; global[2] = 1;
-    auto t_fc1 = launch_kernel_async(world, fc, global, fc_reqd_wg.data());
-
-    cl_ushort in_neuron2 = static_cast<cl_ushort>(256);
-
-    clSetKernelArg(fc, 0, sizeof(cl_mem), &dens1_out.buffer);
-    clSetKernelArg(fc, 1, sizeof(cl_mem), &class_out.buffer);
-    clSetKernelArg(fc, 2, sizeof(cl_mem), &cl_wdo.buffer);
-    clSetKernelArg(fc, 3, sizeof(cl_mem), &cl_bdo.buffer);
-    clSetKernelArg(fc, 4, sizeof(cl_ushort), &in_neuron2);
-
-    global[0] = 10; global[1] = 1; global[2] = 1;
-    auto t_fc2 = launch_kernel_async(world, fc, global, fc_reqd_wg.data());
-
-    clSetKernelArg(softmax, 0, sizeof(cl_mem), &class_out.buffer);
-    clSetKernelArg(softmax, 1, sizeof(cl_mem), &softm_out.buffer);
-
-    global[0] = 1; global[1] = 1; global[2] = 1;
-    auto t_soft = launch_kernel_async(world, softmax, global, softmax_reqd_wg.data());
-
-    clFinish(world.command_queue);
-
-    auto fpga_elapsed = timer.stop();
-
-    auto cnn_outs = data_device_to_host(world, softm_out);
-    clFinish(world.command_queue);
-
-//    std::cout << "Total Time Elapsed: " << (std::size_t)fpga_elapsed << "\tus"  << '\n';
-//    std::cout << "FPGA Elapsed Timings: \n";
-//    std::cout << "conv1: " << (std::size_t)getProfileFromEvent(t_conv1) / 1000 << "\tus"  << '\n';
-//    std::cout << "pool1: " << (std::size_t)getProfileFromEvent(t_pool1) / 1000 << "\tus"  << '\n';
-//    std::cout << "conv2: " << (std::size_t)getProfileFromEvent(t_conv2) / 1000 << "\tus"  << '\n';
-//    std::cout << "pool2: " << (std::size_t)getProfileFromEvent(t_pool2) / 1000 << "\tus"  << '\n';
-//    std::cout << "fc1  : " << (std::size_t)getProfileFromEvent(t_fc1)   / 1000 << "\tus"  << '\n';
-//    std::cout << "fc2  : " << (std::size_t)getProfileFromEvent(t_fc2)   / 1000 << "\tus"  << '\n';
-//    std::cout << "soft : " << (std::size_t)getProfileFromEvent(t_soft)  / 1000 << "\tus"  << '\n';
-//    std::cout << std::endl;
-
-    clReleaseMemObject(cl_img.buffer);
-    clReleaseMemObject(cl_wc1.buffer);
-    clReleaseMemObject(cl_bc1.buffer);
-    clReleaseMemObject(cl_wc2.buffer);
-    clReleaseMemObject(cl_bc2.buffer);
-    clReleaseMemObject(cl_wd1.buffer);
-    clReleaseMemObject(cl_bd1.buffer);
-    clReleaseMemObject(cl_wdo.buffer);
-    clReleaseMemObject(cl_bdo.buffer);
-    return cnn_outs;
-}
+//DataBlob<float> ocl_cnn_img_test(DataBlob<float> & img, std::map<std::string, DataBlob<float>> & model, 
+//                                 xcl_world & world, const std::vector<cl_kernel> & kernels)
+//{
+//    //cl_kernel conv = get_kernel_from_vec(kernels, "conv_local");
+//    //auto conv_reqd_wg = get_kernel_reqd_wg_size(conv, world.device_id);
+//    //cl_kernel maxp = get_kernel_from_vec(kernels, "max_pool2");
+//    //auto maxp_reqd_wg = get_kernel_reqd_wg_size(maxp, world.device_id);
+//    //cl_kernel fc = get_kernel_from_vec(kernels, "fc");
+//    //auto fc_reqd_wg = get_kernel_reqd_wg_size(fc, world.device_id);
+//    //cl_kernel softmax = get_kernel_from_vec(kernels, "softmax_layer");
+//    //auto softmax_reqd_wg = get_kernel_reqd_wg_size(softmax, world.device_id);
+//
+//    cl_kernel conv1 = get_kernel_from_vec(kernels, "conv1");
+//    auto conv1_wg = get_kernel_reqd_wg_size(conv1, world.device_id);
+//    cl_kernel conv2 = get_kernel_from_vec(kernels, "conv2");
+//    auto conv2_wg = get_kernel_reqd_wg_size(conv2, world.device_id);
+//    cl_kernel mpool1 = get_kernel_from_vec(kernels, "max_pool1");
+//    auto mpool1_wg = get_kernel_reqd_wg_size(mpool1, world.device_id);
+//    cl_kernel mpool2 = get_kernel_from_vec(kernels, "max_pool2");
+//    auto mpool2_wg = get_kernel_reqd_wg_size(mpool2, world.device_id);
+//    cl_kernel fc1 = get_kernel_from_vec(kernels, "fc1");
+//    auto fc1_wg = get_kernel_reqd_wg_size(fc1, world.device_id);
+//    cl_kernel fc2 = get_kernel_from_vec(kernels, "fc2");
+//    auto fc2_wg = get_kernel_reqd_wg_size(fc2, world.device_id);
+//    cl_kernel softmax = get_kernel_from_vec(kernels, "softmax_layer");
+//    auto softmax_reqd_wg = get_kernel_reqd_wg_size(softmax, world.device_id);
+//
+//    std::cout << "Transfering image to device...\n";
+//    auto cl_img = data_host_to_device(world, CL_MEM_READ_ONLY, img);
+//    std::cout << "Image is transfered to device\n";
+//    auto cl_wc1 = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("wc1"));  // Conv1 weights
+//    auto cl_bc1 = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("bc1"));  // Conv1 biases
+//    auto cl_wc2 = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("wc2"));  // Conv2 weights
+//    auto cl_bc2 = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("bc2"));  // Conv2 biases
+//    auto cl_wd1 = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("wd1"));  // FullyConn. (dense) weights
+//    auto cl_bd1 = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("bd1"));  // FullyConn. (dense) biases
+//    auto cl_wdo = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("wdo"));  // FullyConn. out (dense) weights
+//    auto cl_bdo = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("bdo"));  // FullyConn. out (dense) biases
+//    std::cout << "OpenCL Run Model Weights and Biases are Extracted!\n";
+//
+//    auto conv1_out = emptyClDataBlob<float>(world, {24, 24, 32}, CL_MEM_READ_WRITE);
+//    auto pool1_out = emptyClDataBlob<float>(world, {12, 12, 32}, CL_MEM_READ_WRITE);
+//    auto conv2_out = emptyClDataBlob<float>(world, {8, 8, 64}, CL_MEM_READ_WRITE);
+//    auto pool2_out = emptyClDataBlob<float>(world, {4, 4, 64}, CL_MEM_READ_WRITE);
+//    auto dens1_out = emptyClDataBlob<float>(world, {256}, CL_MEM_READ_WRITE);
+//    auto class_out = emptyClDataBlob<float>(world, {10}, CL_MEM_READ_WRITE);
+//    auto softm_out = emptyClDataBlob<float>(world, {10}, CL_MEM_WRITE_ONLY);
+//    std::cout << "Intermediate data created!" << std::endl;
+//
+//    cl_uchar conv1_in_width   = static_cast<cl_uchar>(cl_img.dims[0]);
+//    cl_uchar conv1_in_height  = static_cast<cl_uchar>(cl_img.dims[1]);
+//    cl_uchar conv1_mask_depth = static_cast<cl_uchar>(cl_img.dims[2]);
+//    cl_uchar conv2_in_width   = static_cast<cl_uchar>(pool1_out.dims[0]);
+//    cl_uchar conv2_in_height  = static_cast<cl_uchar>(pool1_out.dims[1]);
+//    cl_uchar conv2_mask_depth = static_cast<cl_uchar>(pool1_out.dims[2]);
+//
+//    clSetKernelArg(conv1, 0, sizeof(cl_mem), &cl_img.buffer); 
+//    clSetKernelArg(conv1, 1, sizeof(cl_mem), &conv1_out.buffer);
+//    clSetKernelArg(conv1, 2, sizeof(cl_mem), &cl_wc1.buffer);
+//    clSetKernelArg(conv1, 3, sizeof(cl_mem), &cl_bc1.buffer);
+//    clSetKernelArg(conv1, 4, sizeof(cl_uchar), &conv1_in_width);
+//    clSetKernelArg(conv1, 5, sizeof(cl_uchar), &conv1_in_height);
+//    clSetKernelArg(conv1, 6, sizeof(cl_uchar), &conv1_mask_depth);
+//
+//    StopWatch<> timer;
+//
+//    size_t global[3] = {24, 24, 32};
+//    auto t_conv1 = launch_kernel_async(world, conv, global, conv_reqd_wg.data());
+//
+//    clSetKernelArg(maxp, 0, sizeof(cl_mem), &conv1_out.buffer);
+//    clSetKernelArg(maxp, 1, sizeof(cl_mem), &pool1_out.buffer);
+//
+//    global[0] = 12; global[1] = 12; global[2] = 32;
+//    auto t_pool1 = launch_kernel_async(world, maxp, global, maxp_reqd_wg.data());
+//
+//    clSetKernelArg(conv2, 0, sizeof(cl_mem), &pool1_out.buffer);
+//    clSetKernelArg(conv2, 1, sizeof(cl_mem), &conv2_out.buffer);
+//    clSetKernelArg(conv2, 2, sizeof(cl_mem), &cl_wc2.buffer);
+//    clSetKernelArg(conv2, 3, sizeof(cl_mem), &cl_bc2.buffer);
+//    clSetKernelArg(conv2, 4, sizeof(cl_uchar), &conv2_in_width);
+//    clSetKernelArg(conv2, 5, sizeof(cl_uchar), &conv2_in_height);
+//    clSetKernelArg(conv, 6, sizeof(cl_uchar), &conv2_mask_depth);
+//
+//    global[0] = 8; global[1] = 8; global[2] = 64;
+//    auto t_conv2 = launch_kernel_async(world, conv, global, conv_reqd_wg.data());
+//
+//    clSetKernelArg(maxp, 0, sizeof(cl_mem), &conv2_out.buffer);
+//    clSetKernelArg(maxp, 1, sizeof(cl_mem), &pool2_out.buffer);
+//
+//    global[0] = 4; global[1] = 4; global[2] = 64;
+//    auto t_pool2 = launch_kernel_async(world, maxp, global, maxp_reqd_wg.data());
+//
+//    cl_ushort in_neuron1 = static_cast<cl_ushort>(4 * 4 * 64);
+//
+//    clSetKernelArg(fc, 0, sizeof(cl_mem), &pool2_out.buffer);
+//    clSetKernelArg(fc, 1, sizeof(cl_mem), &dens1_out.buffer);
+//    clSetKernelArg(fc, 2, sizeof(cl_mem), &cl_wd1.buffer);
+//    clSetKernelArg(fc, 3, sizeof(cl_mem), &cl_bd1.buffer);
+//    clSetKernelArg(fc, 4, sizeof(cl_ushort), &in_neuron1);
+//
+//    global[0] = 256; global[1] = 1; global[2] = 1;
+//    auto t_fc1 = launch_kernel_async(world, fc, global, fc_reqd_wg.data());
+//
+//    cl_ushort in_neuron2 = static_cast<cl_ushort>(256);
+//
+//    clSetKernelArg(fc, 0, sizeof(cl_mem), &dens1_out.buffer);
+//    clSetKernelArg(fc, 1, sizeof(cl_mem), &class_out.buffer);
+//    clSetKernelArg(fc, 2, sizeof(cl_mem), &cl_wdo.buffer);
+//    clSetKernelArg(fc, 3, sizeof(cl_mem), &cl_bdo.buffer);
+//    clSetKernelArg(fc, 4, sizeof(cl_ushort), &in_neuron2);
+//
+//    global[0] = 10; global[1] = 1; global[2] = 1;
+//    auto t_fc2 = launch_kernel_async(world, fc, global, fc_reqd_wg.data());
+//
+//    clSetKernelArg(softmax, 0, sizeof(cl_mem), &class_out.buffer);
+//    clSetKernelArg(softmax, 1, sizeof(cl_mem), &softm_out.buffer);
+//
+//    global[0] = 1; global[1] = 1; global[2] = 1;
+//    auto t_soft = launch_kernel_async(world, softmax, global, softmax_reqd_wg.data());
+//
+//    clFinish(world.command_queue);
+//
+//    auto fpga_elapsed = timer.stop();
+//
+//    auto cnn_outs = data_device_to_host(world, softm_out);
+//    clFinish(world.command_queue);
+//
+////    std::cout << "Total Time Elapsed: " << (std::size_t)fpga_elapsed << "\tus"  << '\n';
+////    std::cout << "FPGA Elapsed Timings: \n";
+////    std::cout << "conv1: " << (std::size_t)getProfileFromEvent(t_conv1) / 1000 << "\tus"  << '\n';
+////    std::cout << "pool1: " << (std::size_t)getProfileFromEvent(t_pool1) / 1000 << "\tus"  << '\n';
+////    std::cout << "conv2: " << (std::size_t)getProfileFromEvent(t_conv2) / 1000 << "\tus"  << '\n';
+////    std::cout << "pool2: " << (std::size_t)getProfileFromEvent(t_pool2) / 1000 << "\tus"  << '\n';
+////    std::cout << "fc1  : " << (std::size_t)getProfileFromEvent(t_fc1)   / 1000 << "\tus"  << '\n';
+////    std::cout << "fc2  : " << (std::size_t)getProfileFromEvent(t_fc2)   / 1000 << "\tus"  << '\n';
+////    std::cout << "soft : " << (std::size_t)getProfileFromEvent(t_soft)  / 1000 << "\tus"  << '\n';
+////    std::cout << std::endl;
+//
+//    clReleaseMemObject(cl_img.buffer);
+//    clReleaseMemObject(cl_wc1.buffer);
+//    clReleaseMemObject(cl_bc1.buffer);
+//    clReleaseMemObject(cl_wc2.buffer);
+//    clReleaseMemObject(cl_bc2.buffer);
+//    clReleaseMemObject(cl_wd1.buffer);
+//    clReleaseMemObject(cl_bd1.buffer);
+//    clReleaseMemObject(cl_wdo.buffer);
+//    clReleaseMemObject(cl_bdo.buffer);
+//    return cnn_outs;
+//}
 
 oclCNN::oclCNN(std::map<std::string, DataBlob<float>> & model, xcl_world &  world, const std::vector<cl_kernel> & kernels)
     : m_model(model), m_world(world)
 {
-    conv = get_kernel_from_vec(kernels, "conv_local");
-    conv_wg = get_kernel_reqd_wg_size(conv, world.device_id);
-    mpool = get_kernel_from_vec(kernels, "max_pool2");
-    mpool_wg = get_kernel_reqd_wg_size(mpool, world.device_id);
-    fc = get_kernel_from_vec(kernels, "fc");
-    fc_wg = get_kernel_reqd_wg_size(fc, world.device_id);
+    cl_kernel load_model = get_kernel_from_vec(kernels, "load_model_ocm");
+    auto loadm_wg = get_kernel_reqd_wg_size(load_model, world.device_id);
+
+    conv1 = get_kernel_from_vec(kernels, "conv1");
+    conv1_wg = get_kernel_reqd_wg_size(conv1, world.device_id);
+    conv2 = get_kernel_from_vec(kernels, "conv2");
+    conv2_wg = get_kernel_reqd_wg_size(conv2, world.device_id);
+    mpool1 = get_kernel_from_vec(kernels, "max_pool1");
+    mpool1_wg = get_kernel_reqd_wg_size(mpool1, world.device_id);
+    mpool2 = get_kernel_from_vec(kernels, "max_pool2");
+    mpool2_wg = get_kernel_reqd_wg_size(mpool2, world.device_id);
+    fc1 = get_kernel_from_vec(kernels, "fc1");
+    fc1_wg = get_kernel_reqd_wg_size(fc1, world.device_id);
+    fc2 = get_kernel_from_vec(kernels, "fc2");
+    fc2_wg = get_kernel_reqd_wg_size(fc2, world.device_id);
     soft = get_kernel_from_vec(kernels, "softmax_layer");
     soft_wg = get_kernel_reqd_wg_size(soft, world.device_id);
     std::cout << "OpenCL Kernels and Required Workgroup sizes are Extracted!\n";
@@ -177,7 +201,21 @@ oclCNN::oclCNN(std::map<std::string, DataBlob<float>> & model, xcl_world &  worl
     cl_bd1 = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("bd1"));  // FullyConn. (dense) biases
     cl_wdo = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("wdo"));  // FullyConn. out (dense) weights
     cl_bdo = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("bdo"));  // FullyConn. out (dense) biases
-    std::cout << "OpenCL Run Model Weights and Biases are Extracted!\n";
+    std::cout << "OpenCL Run Model Weights and Biases are Extracted and Transfered to Device!\n";
+
+    clFinish(world.command_queue);
+
+    clSetKernelArg(load_model, 0, sizeof(cl_mem), &cl_wc1.buffer);
+    clSetKernelArg(load_model, 1, sizeof(cl_mem), &cl_bc1.buffer);
+    clSetKernelArg(load_model, 2, sizeof(cl_mem), &cl_wc2.buffer);
+    clSetKernelArg(load_model, 3, sizeof(cl_mem), &cl_bc2.buffer);
+    clSetKernelArg(load_model, 4, sizeof(cl_mem), &cl_wd1.buffer);
+    clSetKernelArg(load_model, 5, sizeof(cl_mem), &cl_bd1.buffer);
+    clSetKernelArg(load_model, 6, sizeof(cl_mem), &cl_wdo.buffer);
+    clSetKernelArg(load_model, 7, sizeof(cl_mem), &cl_bdo.buffer);
+
+    size_t global[3] = {1, 1, 1};
+    auto t_load_model = launch_kernel(world, load_model, global, loadm_wg.data());
 
     conv1_out = emptyClDataBlob<float>(world, {24, 24, 32}, CL_MEM_READ_WRITE);
     pool1_out = emptyClDataBlob<float>(world, {12, 12, 32}, CL_MEM_READ_WRITE);
@@ -186,7 +224,56 @@ oclCNN::oclCNN(std::map<std::string, DataBlob<float>> & model, xcl_world &  worl
     dens1_out = emptyClDataBlob<float>(world, {256}, CL_MEM_READ_WRITE);
     class_out = emptyClDataBlob<float>(world, {10}, CL_MEM_READ_WRITE);
     softm_out = emptyClDataBlob<float>(world, {10}, CL_MEM_WRITE_ONLY);
-    std::cout << "Intermediate data created!" << std::endl;
+    std::cout << "Intermediate data created!\n";
+
+//    cl_uchar conv1_in_width   = static_cast<cl_uchar>(cl_img.dims[0]);
+//    cl_uchar conv1_in_height  = static_cast<cl_uchar>(cl_img.dims[1]);
+//    cl_uchar conv1_mask_depth = static_cast<cl_uchar>(cl_img.dims[2]);
+//    cl_uchar conv1_in_width   = static_cast<cl_uchar>(28);
+//    cl_uchar conv1_in_height  = static_cast<cl_uchar>(28);
+//    cl_uchar conv1_mask_depth = static_cast<cl_uchar>(1);
+//    cl_uchar conv2_in_width   = static_cast<cl_uchar>(pool1_out.dims[0]);
+//    cl_uchar conv2_in_height  = static_cast<cl_uchar>(pool1_out.dims[1]);
+//    cl_uchar conv2_mask_depth = static_cast<cl_uchar>(pool1_out.dims[2]);
+
+//    clSetKernelArg(conv1, 0, sizeof(cl_mem), &cl_img.buffer); 
+    clSetKernelArg(conv1, 1, sizeof(cl_mem), &conv1_out.buffer);
+    clSetKernelArg(conv1, 2, sizeof(cl_mem), &cl_wc1.buffer);
+    clSetKernelArg(conv1, 3, sizeof(cl_mem), &cl_bc1.buffer);
+//    clSetKernelArg(conv1, 4, sizeof(cl_uchar), &conv1_in_width);
+//    clSetKernelArg(conv1, 5, sizeof(cl_uchar), &conv1_in_height);
+//    clSetKernelArg(conv1, 6, sizeof(cl_uchar), &conv1_mask_depth);
+    std::cout << "OpenCL Kernel conv1 arguments are bound!" << std::endl;
+    clSetKernelArg(conv2, 0, sizeof(cl_mem), &pool1_out.buffer);
+    clSetKernelArg(conv2, 1, sizeof(cl_mem), &conv2_out.buffer);
+    clSetKernelArg(conv2, 2, sizeof(cl_mem), &cl_wc2.buffer);
+    clSetKernelArg(conv2, 3, sizeof(cl_mem), &cl_bc2.buffer);
+//    clSetKernelArg(conv2, 4, sizeof(cl_uchar), &conv2_in_width);
+//    clSetKernelArg(conv2, 5, sizeof(cl_uchar), &conv2_in_height);
+//    clSetKernelArg(conv2, 6, sizeof(cl_uchar), &conv2_mask_depth);
+    std::cout << "OpenCL Kernel conv2 arguments are bound!" << std::endl;
+    clSetKernelArg(mpool1, 0, sizeof(cl_mem), &conv1_out.buffer);
+    clSetKernelArg(mpool1, 1, sizeof(cl_mem), &pool1_out.buffer);
+    clSetKernelArg(mpool2, 0, sizeof(cl_mem), &conv2_out.buffer);
+    clSetKernelArg(mpool2, 1, sizeof(cl_mem), &pool2_out.buffer);
+    std::cout << "OpenCL Kernels mpool1 and mpool2 arguments are bound!" << std::endl;
+//    cl_ushort in_neuron1 = static_cast<cl_ushort>(4 * 4 * 64);
+    clSetKernelArg(fc1, 0, sizeof(cl_mem), &pool2_out.buffer);
+    clSetKernelArg(fc1, 1, sizeof(cl_mem), &dens1_out.buffer);
+    clSetKernelArg(fc1, 2, sizeof(cl_mem), &cl_wd1.buffer);
+    clSetKernelArg(fc1, 3, sizeof(cl_mem), &cl_bd1.buffer);
+//    clSetKernelArg(fc1, 4, sizeof(cl_ushort), &in_neuron1);
+    std::cout << "OpenCL Kernel fc1 arguments are bound!" << std::endl;
+//    cl_ushort in_neuron2 = static_cast<cl_ushort>(256);
+    clSetKernelArg(fc2, 0, sizeof(cl_mem), &dens1_out.buffer);
+    clSetKernelArg(fc2, 1, sizeof(cl_mem), &class_out.buffer);
+    clSetKernelArg(fc2, 2, sizeof(cl_mem), &cl_wdo.buffer);
+    clSetKernelArg(fc2, 3, sizeof(cl_mem), &cl_bdo.buffer);
+//    clSetKernelArg(fc2, 4, sizeof(cl_ushort), &in_neuron2);
+    std::cout << "OpenCL Kernel fc2 arguments are bound!" << std::endl;
+    clSetKernelArg(soft, 0, sizeof(cl_mem), &class_out.buffer);
+    clSetKernelArg(soft, 1, sizeof(cl_mem), &softm_out.buffer);
+    std::cout << "OpenCL Kernel softmax arguments are bound!" << std::endl;
 }
 
 oclCNN::~oclCNN()
@@ -210,97 +297,62 @@ oclCNN::~oclCNN()
 
 DataBlob<float> oclCNN::runImg(DataBlob<float> & img)
 {
-    //std::cout << "Transfering image to device...\n";
+//    return {{0,0,0,0,0,0,0,1.0,0,0}, {10}};
+
+    size_t global[3];
     auto cl_img = data_host_to_device(m_world, CL_MEM_READ_ONLY, img);
-    //std::cout << "Image is transfered to device" << std::endl;
-
-    cl_uchar conv1_in_width   = static_cast<cl_uchar>(cl_img.dims[0]);
-    cl_uchar conv1_in_height  = static_cast<cl_uchar>(cl_img.dims[1]);
-    cl_uchar conv1_mask_depth = static_cast<cl_uchar>(cl_img.dims[2]);
-    cl_uchar conv2_in_width   = static_cast<cl_uchar>(pool1_out.dims[0]);
-    cl_uchar conv2_in_height  = static_cast<cl_uchar>(pool1_out.dims[1]);
-    cl_uchar conv2_mask_depth = static_cast<cl_uchar>(pool1_out.dims[2]);
-
-    clSetKernelArg(conv, 0, sizeof(cl_mem), &cl_img.buffer); 
-    clSetKernelArg(conv, 1, sizeof(cl_mem), &conv1_out.buffer);
-    clSetKernelArg(conv, 2, sizeof(cl_mem), &cl_wc1.buffer);
-    clSetKernelArg(conv, 3, sizeof(cl_mem), &cl_bc1.buffer);
-    clSetKernelArg(conv, 4, sizeof(cl_uchar), &conv1_in_width);
-    clSetKernelArg(conv, 5, sizeof(cl_uchar), &conv1_in_height);
-    clSetKernelArg(conv, 6, sizeof(cl_uchar), &conv1_mask_depth);
-
+    clFinish(m_world.command_queue);
+    clSetKernelArg(conv1, 0, sizeof(cl_mem), &cl_img.buffer); 
     StopWatch<> timer;
 
-    size_t global[3] = {24, 24, 32};
-    auto t_conv1 = launch_kernel_async(m_world, conv, global, conv_wg.data());
+    std::cerr << "before conv1\n";
 
-    clSetKernelArg(mpool, 0, sizeof(cl_mem), &conv1_out.buffer);
-    clSetKernelArg(mpool, 1, sizeof(cl_mem), &pool1_out.buffer);
+    global[0] = 24; global[1] = 24; global[2] = 32;
+    auto t_conv1 = launch_kernel_async(m_world, conv1, global, conv1_wg.data());
+    
+    auto err = clFinish(m_world.command_queue);
+    if(err != CL_SUCCESS)
+    {
+        std::cerr << "clFinished failed with err code: " << err << '\n';
+        std::cerr << "Error flag: " << oclErrorCode(err) << '\n';
+        std::exit(EXIT_FAILURE);
+    }
+
+    std::cerr << "after conv1\n";
 
     global[0] = 12; global[1] = 12; global[2] = 32;
-    auto t_pool1 = launch_kernel_async(m_world, mpool, global, mpool_wg.data());
-
-    clSetKernelArg(conv, 0, sizeof(cl_mem), &pool1_out.buffer);
-    clSetKernelArg(conv, 1, sizeof(cl_mem), &conv2_out.buffer);
-    clSetKernelArg(conv, 2, sizeof(cl_mem), &cl_wc2.buffer);
-    clSetKernelArg(conv, 3, sizeof(cl_mem), &cl_bc2.buffer);
-    clSetKernelArg(conv, 4, sizeof(cl_uchar), &conv2_in_width);
-    clSetKernelArg(conv, 5, sizeof(cl_uchar), &conv2_in_height);
-    clSetKernelArg(conv, 6, sizeof(cl_uchar), &conv2_mask_depth);
+    auto t_pool1 = launch_kernel_async(m_world, mpool1, global, mpool1_wg.data());
 
     global[0] = 8; global[1] = 8; global[2] = 64;
-    auto t_conv2 = launch_kernel_async(m_world, conv, global, conv_wg.data());
-
-    clSetKernelArg(mpool, 0, sizeof(cl_mem), &conv2_out.buffer);
-    clSetKernelArg(mpool, 1, sizeof(cl_mem), &pool2_out.buffer);
+    auto t_conv2 = launch_kernel_async(m_world, conv2, global, conv2_wg.data());
 
     global[0] = 4; global[1] = 4; global[2] = 64;
-    auto t_pool2 = launch_kernel_async(m_world, mpool, global, mpool_wg.data());
-
-    cl_ushort in_neuron1 = static_cast<cl_ushort>(4 * 4 * 64);
-
-    clSetKernelArg(fc, 0, sizeof(cl_mem), &pool2_out.buffer);
-    clSetKernelArg(fc, 1, sizeof(cl_mem), &dens1_out.buffer);
-    clSetKernelArg(fc, 2, sizeof(cl_mem), &cl_wd1.buffer);
-    clSetKernelArg(fc, 3, sizeof(cl_mem), &cl_bd1.buffer);
-    clSetKernelArg(fc, 4, sizeof(cl_ushort), &in_neuron1);
+    auto t_pool2 = launch_kernel_async(m_world, mpool2, global, mpool2_wg.data());
 
     global[0] = 256; global[1] = 1; global[2] = 1;
-    auto t_fc1 = launch_kernel_async(m_world, fc, global, fc_wg.data());
-
-    cl_ushort in_neuron2 = static_cast<cl_ushort>(256);
-
-    clSetKernelArg(fc, 0, sizeof(cl_mem), &dens1_out.buffer);
-    clSetKernelArg(fc, 1, sizeof(cl_mem), &class_out.buffer);
-    clSetKernelArg(fc, 2, sizeof(cl_mem), &cl_wdo.buffer);
-    clSetKernelArg(fc, 3, sizeof(cl_mem), &cl_bdo.buffer);
-    clSetKernelArg(fc, 4, sizeof(cl_ushort), &in_neuron2);
+    auto t_fc1 = launch_kernel_async(m_world, fc1, global, fc1_wg.data());
 
     global[0] = 10; global[1] = 1; global[2] = 1;
-    auto t_fc2 = launch_kernel_async(m_world, fc, global, fc_wg.data());
-
-    clSetKernelArg(soft, 0, sizeof(cl_mem), &class_out.buffer);
-    clSetKernelArg(soft, 1, sizeof(cl_mem), &softm_out.buffer);
-
+    auto t_fc2 = launch_kernel_async(m_world, fc2, global, fc2_wg.data());
+    
     global[0] = 1; global[1] = 1; global[2] = 1;
     auto t_soft = launch_kernel_async(m_world, soft, global, soft_wg.data());
 
     clFinish(m_world.command_queue);
-
     auto fpga_elapsed = timer.stop();
 
     auto cnn_outs = data_device_to_host(m_world, softm_out);
     clFinish(m_world.command_queue);
 
     std::cout << "Total Time Elapsed: " << (std::size_t)fpga_elapsed << "\tus"  << '\n';
-    std::cout << "FPGA Elapsed Timings: \n";
-    std::cout << "conv1: " << getProfileFromEvent(t_conv1) / 1000 << "\tus"  << '\n';
-    std::cout << "pool1: " << (std::size_t)getProfileFromEvent(t_pool1) / 1000 << "\tus"  << '\n';
-    std::cout << "conv2: " << getProfileFromEvent(t_conv2) / 1000 << "\tus"  << '\n';
-    std::cout << "pool2: " << (std::size_t)getProfileFromEvent(t_pool2) / 1000 << "\tus"  << '\n';
-    std::cout << "fc1  : " << (std::size_t)getProfileFromEvent(t_fc1)   / 1000 << "\tus"  << '\n';
-    std::cout << "fc2  : " << (std::size_t)getProfileFromEvent(t_fc2)   / 1000 << "\tus"  << '\n';
-    std::cout << "soft : " << (std::size_t)getProfileFromEvent(t_soft)  / 1000 << "\tus"  << '\n';
+//    std::cout << "FPGA Elapsed Timings: \n";
+//    std::cout << "conv1: " << getProfileFromEvent(t_conv1) / 1000 << "\tus"  << '\n';
+//    std::cout << "pool1: " << getProfileFromEvent(t_pool1) / 1000 << "\tus"  << '\n';
+//    std::cout << "conv2: " << getProfileFromEvent(t_conv2) / 1000 << "\tus"  << '\n';
+//    std::cout << "pool2: " << getProfileFromEvent(t_pool2) / 1000 << "\tus"  << '\n';
+//    std::cout << "fc1  : " << getProfileFromEvent(t_fc1)   / 1000 << "\tus"  << '\n';
+//    std::cout << "fc2  : " << getProfileFromEvent(t_fc2)   / 1000 << "\tus"  << '\n';
+//    std::cout << "soft : " << getProfileFromEvent(t_soft)  / 1000 << "\tus"  << '\n';
     std::cout << std::endl;
     return cnn_outs;
 }

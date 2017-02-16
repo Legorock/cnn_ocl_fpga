@@ -24,7 +24,10 @@ template<typename T>
 inline static void print_buf(std::ostream& o, const T *  buf, 
         const std::vector<std::size_t>& dims, const std::size_t curr_dim);
 
-const std::vector<std::string> kernel_names = {"max_pool2", "conv_local", "softmax_layer", "fc"};
+//const std::vector<std::string> kernel_names = {"max_pool2", "conv_local", "softmax_layer", "fc"};
+const std::vector<std::string> kernel_names = {"load_model_ocm", "softmax_layer", 
+                                               "max_pool1", "max_pool2", 
+                                               "conv1", "conv2", "fc1", "fc2"};
 
 
 static auto absolute = [](const std::vector<float>& seq, const std::vector<float>& ocl)

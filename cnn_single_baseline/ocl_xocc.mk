@@ -1,4 +1,4 @@
-!#/bin/bash
+#!/bin/bash
 #set target device for XCLBIN
 XDEVICE=xilinx:adm-pcie-ku3:2ddr:3.0
 

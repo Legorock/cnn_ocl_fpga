@@ -59,7 +59,8 @@ double launch_kernel(xcl_world world, cl_kernel krnl,
     if(err != CL_SUCCESS)
     {
         std::cerr << "ERROR: failed executing the kernel!" << '\t' << err << '\n';
-        std::cerr << "Test failed!\n";
+        std::cerr << "Error flag: " << oclErrorCode(err) << '\n'; 
+        std::cerr << "Kernel Name: " << get_kernel_name(krnl) << '\n';
         exit(EXIT_FAILURE);
     }
     clFinish(world.command_queue);
@@ -81,7 +82,8 @@ cl_event launch_kernel_async(xcl_world world, cl_kernel krnl,
     if(err != CL_SUCCESS)
     {
         std::cerr << "ERROR: failed executing the kernel!" << '\t' << err << '\n';
-        std::cerr << "Test failed!\n";
+        std::cerr << "Error flag: " << oclErrorCode(err) << '\n'; 
+        std::cerr << "Kernel Name: " << get_kernel_name(krnl) << '\n';
         exit(EXIT_FAILURE);
     }
     return event;
@@ -99,7 +101,7 @@ std::vector<cl_kernel> get_kernels_binary(xcl_world world, const char * bin_name
 
     if ((!program) || (err!=CL_SUCCESS)) {
         printf("Error: Failed to create compute program from binary %d!\n", err);
-        printf("Test failed\n");
+        printf("Error Flag: %s\n", oclErrorCode(err));
         exit(EXIT_FAILURE);
     }
 
@@ -112,7 +114,7 @@ std::vector<cl_kernel> get_kernels_binary(xcl_world world, const char * bin_name
         clGetProgramBuildInfo(program, world.device_id, CL_PROGRAM_BUILD_LOG,
                               sizeof(buffer), buffer, &len);
         printf("%s\n", buffer);
-        printf("Test failed\n");
+        printf("Error Flag: %s\n", oclErrorCode(err));
         exit(EXIT_FAILURE);
     }
 
@@ -125,7 +127,7 @@ std::vector<cl_kernel> get_kernels_binary(xcl_world world, const char * bin_name
         cl_kernel kernel = clCreateKernel(program, krnl_name.c_str(), &err);
         if (!kernel || err != CL_SUCCESS) {
             printf("Error: Failed to create kernel for %s: %d\n", krnl_name.c_str(), err);
-            printf("Test failed\n");
+            printf("Error Flag: %s\n", oclErrorCode(err));
             exit(EXIT_FAILURE);
         }
         kernels.push_back(kernel);
