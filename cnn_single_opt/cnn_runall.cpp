@@ -17,13 +17,13 @@
 #include "helper.h"
 #include "Measure.h"
 
-const std::vector<std::string> kernel_names = {"softmax_layer", 
-                                               "max_pool1", "max_pool2", 
-                                               "conv1", "conv2", "fc1", "fc2"};
-//const std::vector<std::string> kernel_names = {"load_model_ocm", "softmax_layer", 
+//const std::vector<std::string> kernel_names = {"softmax_layer", 
 //                                               "max_pool1", "max_pool2", 
 //                                               "conv1", "conv2", "fc1", "fc2"};
-//
+const std::vector<std::string> kernel_names = {"load_model_ocm", "softmax_layer", 
+                                               "max_pool1", "max_pool2", 
+                                               "conv1", "conv2", "fc1", "fc2"};
+
 // Considers only images that are 28x28 like MNIST dataset images
 void mnist_img_out(std::ostream& out, const std::vector<float>& img)
 {
@@ -146,7 +146,7 @@ cnn_runall::~cnn_runall()
 float cnn_runall::run_all()
 {
     std::cout << "ALL MNIST Run...\n";
-    const std::size_t num_test = 1;
+    const std::size_t num_test = 2;
 
     std::vector<std::vector<float>> seq_class;
     std::vector<std::vector<float>> ocl_class;
@@ -166,10 +166,15 @@ float cnn_runall::run_all()
 
         auto seq_img_class = seq_cnn_img_test(img, model_params);
         seq_class.push_back(seq_img_class.buffer);
+        std::cout << "Sequential Output: \n";
+        print_classes(seq_img_class.buffer);
 
         auto ocl_img_class = cnn_dev.runImg(img);
         ocl_class.push_back(ocl_img_class.buffer);
+        std::cout << "OCL FPGA Output: \n";
+        print_classes(ocl_img_class.buffer);
     }
+    std::cout << std::endl;
 
     std::cout << std::fixed << std::setprecision(4);
 //    std::cout << "Sequential CPU run accuracy: " << getAccuracy(seq_class, test_labels) * 100 << "%" << std::endl;

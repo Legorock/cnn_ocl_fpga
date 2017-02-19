@@ -174,8 +174,8 @@ double getProfileFromEvent(cl_event event)
 oclCNN::oclCNN(std::map<std::string, DataBlob<float>> & model, xcl_world &  world, const std::vector<cl_kernel> & kernels)
     : m_model(model), m_world(world)
 {
-//    cl_kernel load_model = get_kernel_from_vec(kernels, "load_model_ocm");
-//    auto loadm_wg = get_kernel_reqd_wg_size(load_model, world.device_id);
+    cl_kernel load_model = get_kernel_from_vec(kernels, "load_model_ocm");
+    auto loadm_wg = get_kernel_reqd_wg_size(load_model, world.device_id);
 
     conv1 = get_kernel_from_vec(kernels, "conv1");
     conv1_wg = get_kernel_reqd_wg_size(conv1, world.device_id);
@@ -205,18 +205,18 @@ oclCNN::oclCNN(std::map<std::string, DataBlob<float>> & model, xcl_world &  worl
 
     clFinish(world.command_queue);
 
-    //clSetKernelArg(load_model, 0, sizeof(cl_mem), &cl_wc1.buffer);
-    //clSetKernelArg(load_model, 1, sizeof(cl_mem), &cl_bc1.buffer);
-    //clSetKernelArg(load_model, 2, sizeof(cl_mem), &cl_wc2.buffer);
-    //clSetKernelArg(load_model, 3, sizeof(cl_mem), &cl_bc2.buffer);
-    //clSetKernelArg(load_model, 4, sizeof(cl_mem), &cl_wd1.buffer);
-    //clSetKernelArg(load_model, 5, sizeof(cl_mem), &cl_bd1.buffer);
-    //clSetKernelArg(load_model, 6, sizeof(cl_mem), &cl_wdo.buffer);
-    //clSetKernelArg(load_model, 7, sizeof(cl_mem), &cl_bdo.buffer);
+    clSetKernelArg(load_model, 0, sizeof(cl_mem), &cl_wc1.buffer);
+    clSetKernelArg(load_model, 1, sizeof(cl_mem), &cl_bc1.buffer);
+    clSetKernelArg(load_model, 2, sizeof(cl_mem), &cl_wc2.buffer);
+    clSetKernelArg(load_model, 3, sizeof(cl_mem), &cl_bc2.buffer);
+    clSetKernelArg(load_model, 4, sizeof(cl_mem), &cl_wd1.buffer);
+    clSetKernelArg(load_model, 5, sizeof(cl_mem), &cl_bd1.buffer);
+    clSetKernelArg(load_model, 6, sizeof(cl_mem), &cl_wdo.buffer);
+    clSetKernelArg(load_model, 7, sizeof(cl_mem), &cl_bdo.buffer);
 
-//    size_t global[3] = {1, 1, 1};
-//    auto t_load_model = launch_kernel(world, load_model, global, loadm_wg.data());
-//    std::cout << "CNN Model Parameters are Relocated to On-Chip Constant Memory!\n";
+    size_t global[3] = {1, 1, 1};
+    auto t_load_model = launch_kernel(world, load_model, global, loadm_wg.data());
+    std::cout << "CNN Model Parameters are Relocated to On-Chip Constant Memory!\n";
 
     conv1_out = emptyClDataBlob<float>(world, {24, 24, 32}, CL_MEM_READ_WRITE);
     pool1_out = emptyClDataBlob<float>(world, {12, 12, 32}, CL_MEM_READ_WRITE);
@@ -227,31 +227,16 @@ oclCNN::oclCNN(std::map<std::string, DataBlob<float>> & model, xcl_world &  worl
     softm_out = emptyClDataBlob<float>(world, {10}, CL_MEM_WRITE_ONLY);
     std::cout << "Intermediate data created!\n";
 
-//    cl_uchar conv1_in_width   = static_cast<cl_uchar>(cl_img.dims[0]);
-//    cl_uchar conv1_in_height  = static_cast<cl_uchar>(cl_img.dims[1]);
-//    cl_uchar conv1_mask_depth = static_cast<cl_uchar>(cl_img.dims[2]);
-//    cl_uchar conv1_in_width   = static_cast<cl_uchar>(28);
-//    cl_uchar conv1_in_height  = static_cast<cl_uchar>(28);
-//    cl_uchar conv1_mask_depth = static_cast<cl_uchar>(1);
-//    cl_uchar conv2_in_width   = static_cast<cl_uchar>(pool1_out.dims[0]);
-//    cl_uchar conv2_in_height  = static_cast<cl_uchar>(pool1_out.dims[1]);
-//    cl_uchar conv2_mask_depth = static_cast<cl_uchar>(pool1_out.dims[2]);
 
 //    clSetKernelArg(conv1, 0, sizeof(cl_mem), &cl_img.buffer); 
     clSetKernelArg(conv1, 1, sizeof(cl_mem), &conv1_out.buffer);
-    clSetKernelArg(conv1, 2, sizeof(cl_mem), &cl_wc1.buffer);
-    clSetKernelArg(conv1, 3, sizeof(cl_mem), &cl_bc1.buffer);
-//    clSetKernelArg(conv1, 4, sizeof(cl_uchar), &conv1_in_width);
-//    clSetKernelArg(conv1, 5, sizeof(cl_uchar), &conv1_in_height);
-//    clSetKernelArg(conv1, 6, sizeof(cl_uchar), &conv1_mask_depth);
+//    clSetKernelArg(conv1, 2, sizeof(cl_mem), &cl_wc1.buffer);
+//    clSetKernelArg(conv1, 3, sizeof(cl_mem), &cl_bc1.buffer);
     std::cout << "OpenCL Kernel conv1 arguments are bound!" << std::endl;
     clSetKernelArg(conv2, 0, sizeof(cl_mem), &pool1_out.buffer);
     clSetKernelArg(conv2, 1, sizeof(cl_mem), &conv2_out.buffer);
-    clSetKernelArg(conv2, 2, sizeof(cl_mem), &cl_wc2.buffer);
-    clSetKernelArg(conv2, 3, sizeof(cl_mem), &cl_bc2.buffer);
-//    clSetKernelArg(conv2, 4, sizeof(cl_uchar), &conv2_in_width);
-//    clSetKernelArg(conv2, 5, sizeof(cl_uchar), &conv2_in_height);
-//    clSetKernelArg(conv2, 6, sizeof(cl_uchar), &conv2_mask_depth);
+//    clSetKernelArg(conv2, 2, sizeof(cl_mem), &cl_wc2.buffer);
+//    clSetKernelArg(conv2, 3, sizeof(cl_mem), &cl_bc2.buffer);
     std::cout << "OpenCL Kernel conv2 arguments are bound!" << std::endl;
     clSetKernelArg(mpool1, 0, sizeof(cl_mem), &conv1_out.buffer);
     clSetKernelArg(mpool1, 1, sizeof(cl_mem), &pool1_out.buffer);
@@ -260,13 +245,13 @@ oclCNN::oclCNN(std::map<std::string, DataBlob<float>> & model, xcl_world &  worl
     std::cout << "OpenCL Kernels mpool1 and mpool2 arguments are bound!" << std::endl;
     clSetKernelArg(fc1, 0, sizeof(cl_mem), &pool2_out.buffer);
     clSetKernelArg(fc1, 1, sizeof(cl_mem), &dens1_out.buffer);
-    clSetKernelArg(fc1, 2, sizeof(cl_mem), &cl_wd1.buffer);
-    clSetKernelArg(fc1, 3, sizeof(cl_mem), &cl_bd1.buffer);
+//    clSetKernelArg(fc1, 2, sizeof(cl_mem), &cl_wd1.buffer);
+//    clSetKernelArg(fc1, 3, sizeof(cl_mem), &cl_bd1.buffer);
     std::cout << "OpenCL Kernel fc1 arguments are bound!" << std::endl;
     clSetKernelArg(fc2, 0, sizeof(cl_mem), &dens1_out.buffer);
     clSetKernelArg(fc2, 1, sizeof(cl_mem), &class_out.buffer);
-    clSetKernelArg(fc2, 2, sizeof(cl_mem), &cl_wdo.buffer);
-    clSetKernelArg(fc2, 3, sizeof(cl_mem), &cl_bdo.buffer);
+//    clSetKernelArg(fc2, 2, sizeof(cl_mem), &cl_wdo.buffer);
+//    clSetKernelArg(fc2, 3, sizeof(cl_mem), &cl_bdo.buffer);
     std::cout << "OpenCL Kernel fc2 arguments are bound!" << std::endl;
     clSetKernelArg(soft, 0, sizeof(cl_mem), &class_out.buffer);
     clSetKernelArg(soft, 1, sizeof(cl_mem), &softm_out.buffer);

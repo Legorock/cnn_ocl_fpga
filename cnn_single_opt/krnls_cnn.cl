@@ -35,49 +35,49 @@ size_t getIdx3D(const size_t z, const size_t y, const size_t x,
 #define D2_B (ONEURON2)
 
 // On-Chip Constant Memory for CNN Model
-//global DATA_TYPE wc1[C1_W];  // CONV1 weights
-//global DATA_TYPE bc1[C1_B];  // CONV1 biases
-//global DATA_TYPE wc2[C2_W];  // CONV2 weights
-//global DATA_TYPE bc2[C2_B];  // CONV2 biases
-//global DATA_TYPE wd1[D1_W];  // FC1   weights
-//global DATA_TYPE bd1[D1_B];  // FC1   biases
-//global DATA_TYPE wd2[D2_W];  // FC2   weights
-//global DATA_TYPE bd2[D2_B];  // FC2   biases
+global DATA_TYPE wc1[C1_W];  // CONV1 weights
+global DATA_TYPE bc1[C1_B];  // CONV1 biases
+global DATA_TYPE wc2[C2_W];  // CONV2 weights
+global DATA_TYPE bc2[C2_B];  // CONV2 biases
+global DATA_TYPE wd1[D1_W];  // FC1   weights
+global DATA_TYPE bd1[D1_B];  // FC1   biases
+global DATA_TYPE wd2[D2_W];  // FC2   weights
+global DATA_TYPE bd2[D2_B];  // FC2   biases
 
 // A Kernel only to Move Off-Chip Constant memory to
 // On-Chip Global Memory. CNN model parameters are 
 // constant across different inference passes.
-//__kernel __attribute__((reqd_work_group_size(1,1,1)))
-//void load_model_ocm(__constant DATA_TYPE * conv1_w, __constant DATA_TYPE * conv1_b,
-//                    __constant DATA_TYPE * conv2_w, __constant DATA_TYPE * conv2_b,
-//                    __constant DATA_TYPE * fc1_w,   __constant DATA_TYPE * fc1_b,
-//                    __constant DATA_TYPE * fc2_w,   __constant DATA_TYPE * fc2_b)
-//{
-////    for(ushort i = 0; i < C1_W; ++i)
+__kernel __attribute__((reqd_work_group_size(1,1,1)))
+void load_model_ocm(__constant DATA_TYPE * conv1_w, __constant DATA_TYPE * conv1_b,
+                    __constant DATA_TYPE * conv2_w, __constant DATA_TYPE * conv2_b,
+                    __constant DATA_TYPE * fc1_w,   __constant DATA_TYPE * fc1_b,
+                    __constant DATA_TYPE * fc2_w,   __constant DATA_TYPE * fc2_b)
+{
+    for(ushort i = 0; i < C1_W; ++i)
 //    for(uint i = 0; i < C1_W; ++i)
-//        wc1[i] = conv1_w[i];
-////    for(uchar i = 0; i < C1_B; ++i)
+        wc1[i] = conv1_w[i];
+    for(uchar i = 0; i < C1_B; ++i)
 //    for(uint i = 0; i < C1_B; ++i)
-//        bc1[i] = conv1_b[i];
-////    for(ushort i = 0; i < C2_W; ++i)
+        bc1[i] = conv1_b[i];
+    for(ushort i = 0; i < C2_W; ++i)
 //    for(uint i = 0; i < C2_W; ++i)
-//        wc2[i] = conv2_w[i];
-////    for(uchar i = 0; i < C2_B; ++i)
+        wc2[i] = conv2_w[i];
+    for(uchar i = 0; i < C2_B; ++i)
 //    for(uint i = 0; i < C2_B; ++i)
-//        bc2[i] = conv2_b[i];
-//    for(uint i = 0; i < D1_W; ++i)
-//        wd1[i] = fc1_w[i];
-////    for(uchar i = 0; i < D1_B; ++i) //in theory should have worked consider 'unsigned char' maybe!!
-//    for(uint i = 0; i < D1_B; ++i)
-//        bd1[i] = fc1_b[i];
-////    for(ushort i = 0; i < D2_W; ++i)
+        bc2[i] = conv2_b[i];
+    for(uint i = 0; i < D1_W; ++i)
+        wd1[i] = fc1_w[i];
+//    for(uchar i = 0; i < D1_B; ++i) //in theory should have worked consider 'unsigned char' maybe!!
+    for(ushort i = 0; i < D1_B; ++i)
+        bd1[i] = fc1_b[i];
+    for(ushort i = 0; i < D2_W; ++i)
 //    for(uint i = 0; i < D2_W; ++i)
-//        wd2[i] = fc2_w[i];
-////    for(uchar i = 0; i < D2_B; ++i)
+        wd2[i] = fc2_w[i];
+    for(uchar i = 0; i < D2_B; ++i)
 //    for(uint i = 0; i < D2_B; ++i)
-//        bd2[i] = fc2_b[i];
-//    return;
-//}
+        bd2[i] = fc2_b[i];
+    return;
+}
 
 
 // Max pooling layer 1 with
@@ -136,8 +136,8 @@ void max_pool2(__global DATA_TYPE * in, __global DATA_TYPE * out)
 #define TILE1_Y (CONV1_WG_Y+MASK1_SIZE-1)
 
 __kernel __attribute__((reqd_work_group_size(CONV1_WG_X, CONV1_WG_Y, CONV1_WG_Z)))
-void conv1(__global DATA_TYPE * in, __global DATA_TYPE * out,
-                __constant DATA_TYPE * weight, __constant DATA_TYPE * biases)
+void conv1(__global DATA_TYPE * in, __global DATA_TYPE * out)
+//                __constant DATA_TYPE * weight, __constant DATA_TYPE * biases)
 {
     __local DATA_TYPE tile[TILE1_X * TILE1_Y];
 
@@ -150,7 +150,7 @@ void conv1(__global DATA_TYPE * in, __global DATA_TYPE * out,
     size_t out_idx = w + OWIDTH1 * (h + OHEIGHT1 * d);
 
     DATA_TYPE c = (DATA_TYPE)0;
-//    __attribute__((xcl_pipeline_loop))
+    __attribute__((xcl_pipeline_loop))
     for(size_t cd = 0; cd < MASK1_DEPTH; ++cd)
     {
         for(size_t i = 0; i < TILE1_Y; ++i)
@@ -165,11 +165,13 @@ void conv1(__global DATA_TYPE * in, __global DATA_TYPE * out,
             for(size_t cw = 0; cw < MASK1_SIZE; ++cw)
             {
                 c += tile[getIdx2D(ch + get_local_id(1), cw + get_local_id(0), TILE1_X)]
-                * weight[cw + (ch + cd * MASK1_SIZE) * MASK1_SIZE + d * MASK1_SIZE * MASK1_SIZE * MASK1_DEPTH];
+//                * weight[cw + (ch + cd * MASK1_SIZE) * MASK1_SIZE + d * MASK1_SIZE * MASK1_SIZE * MASK1_DEPTH];
+                * wc1[cw + (ch + cd * MASK1_SIZE) * MASK1_SIZE + d * MASK1_SIZE * MASK1_SIZE * MASK1_DEPTH];
             }
         }
     }
-    out[out_idx] = relu(c + biases[d]);
+//    out[out_idx] = relu(c + biases[d]);
+    out[out_idx] = relu(c + bc1[d]);
     return;
 }
 
@@ -185,8 +187,8 @@ void conv1(__global DATA_TYPE * in, __global DATA_TYPE * out,
 #define TILE2_Y (CONV1_WG_Y+MASK2_SIZE-1)
 
 __kernel __attribute__((reqd_work_group_size(CONV2_WG_X, CONV2_WG_Y, CONV2_WG_Z)))
-void conv2(__global DATA_TYPE * in, __global DATA_TYPE * out,
-                __constant DATA_TYPE * weight, __constant DATA_TYPE * biases)
+void conv2(__global DATA_TYPE * in, __global DATA_TYPE * out)
+//                __constant DATA_TYPE * weight, __constant DATA_TYPE * biases)
 {
     __local DATA_TYPE tile[TILE2_X * TILE2_Y];
 
@@ -199,7 +201,7 @@ void conv2(__global DATA_TYPE * in, __global DATA_TYPE * out,
     size_t out_idx = w + OWIDTH2 * (h + OHEIGHT2 * d);
 
     DATA_TYPE c = (DATA_TYPE)0;
-//    __attribute__((xcl_pipeline_loop))
+    __attribute__((xcl_pipeline_loop))
     for(size_t cd = 0; cd < MASK2_DEPTH; ++cd)
     {
         for(size_t i = 0; i < TILE2_Y; ++i)
@@ -214,46 +216,54 @@ void conv2(__global DATA_TYPE * in, __global DATA_TYPE * out,
             for(size_t cw = 0; cw < MASK2_SIZE; ++cw)
             {
                 c += tile[getIdx2D(ch + get_local_id(1), cw + get_local_id(0), TILE2_X)]
-                * weight[cw + (ch + cd * MASK2_SIZE) * MASK2_SIZE + d * MASK2_SIZE * MASK2_SIZE * MASK2_DEPTH];
+//                * weight[cw + (ch + cd * MASK2_SIZE) * MASK2_SIZE + d * MASK2_SIZE * MASK2_SIZE * MASK2_DEPTH];
+                * wc2[cw + (ch + cd * MASK2_SIZE) * MASK2_SIZE + d * MASK2_SIZE * MASK2_SIZE * MASK2_DEPTH];
             }
         }
     }
-    out[out_idx] = relu(c + biases[d]);
+//    out[out_idx] = relu(c + biases[d]);
+    out[out_idx] = relu(c + bc2[d]);
     return;
 }
 
 // Fully connected layer
 // kernel launch grid based on
 // number of output neuron
-// Number of work-groups is 32
-__kernel __attribute__((reqd_work_group_size((ONEURON1/32), 1, 1)))
-void fc1(__global DATA_TYPE * in, __global DATA_TYPE * out,
-        __constant DATA_TYPE * weights, __constant DATA_TYPE * biases)
+#define FC1_WG_NUM 16   // Number of work-groups is 16
+__kernel __attribute__((reqd_work_group_size((ONEURON1/FC1_WG_NUM), 1, 1)))
+//void fc1(__global DATA_TYPE * in, __global DATA_TYPE * out,
+//        __constant DATA_TYPE * weights, __constant DATA_TYPE * biases)
+void fc1(__global DATA_TYPE * in, __global DATA_TYPE * out)
 {
     size_t neuron = get_global_id(0);
     DATA_TYPE n = 0;
-//    __attribute__((xcl_pipeline_loop))
+    __attribute__((xcl_pipeline_loop))
     for(size_t c = 0; c < INEURON1; ++c)
     {
-        n += in[c] * weights[neuron * INEURON1 + c];
+//        n += in[c] * weights[neuron * INEURON1 + c];
+        n += in[c] * wd1[neuron * INEURON1 + c];
     }
-    out[neuron] = relu(n + biases[neuron]);
+//    out[neuron] = relu(n + biases[neuron]);
+    out[neuron] = relu(n + bd1[neuron]);
     return;
 }
 
-// Number of work-groups is 2
-__kernel __attribute__((reqd_work_group_size((ONEURON2/2), 1, 1)))
-void fc2(__global DATA_TYPE * in, __global DATA_TYPE * out,
-        __constant DATA_TYPE * weights, __constant DATA_TYPE * biases)
+#define FC2_WG_NUM 2    // Number of work-groups is 2
+__kernel __attribute__((reqd_work_group_size((ONEURON2/FC2_WG_NUM), 1, 1)))
+//void fc2(__global DATA_TYPE * in, __global DATA_TYPE * out,
+//        __constant DATA_TYPE * weights, __constant DATA_TYPE * biases)
+void fc2(__global DATA_TYPE * in, __global DATA_TYPE * out)
 {
     size_t neuron = get_global_id(0);
     DATA_TYPE n = 0;
-//    __attribute__((xcl_pipeline_loop))
+    __attribute__((xcl_pipeline_loop))
     for(size_t c = 0; c < INEURON2; ++c)
     {
-        n += in[c] * weights[neuron * INEURON2 + c];
+//        n += in[c] * weights[neuron * INEURON2 + c];
+        n += in[c] * wd2[neuron * INEURON2 + c];
     }
-    out[neuron] = relu(n + biases[neuron]);
+//    out[neuron] = relu(n + biases[neuron]);
+    out[neuron] = relu(n + bd2[neuron]);
     return;
 }
 
