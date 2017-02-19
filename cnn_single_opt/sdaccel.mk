@@ -53,7 +53,7 @@ HOST_CFLAGS = -g -std=c++0x -Wall -DFPGA_DEVICE -DC_KERNEL -I${XILINX_SDACCEL}/r
 HOST_LFLAGS = -L${XILINX_SDACCEL}/runtime/lib/x86_64 -lxilinxopencl -llmx6.0
 
 CLCC_JOBS = 8        # number of jobs for compile and synthesis
-CLCC_OPT_LEVEL = -O3 # optimization level of the kernel source
+CLCC_OPT_LEVEL = -O0 # optimization level of the kernel source
 
 KERNEL_SRCS = krnls_cnn.cl
 //KERNEL_SRCS = emu_try.cl

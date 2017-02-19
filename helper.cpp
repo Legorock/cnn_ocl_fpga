@@ -95,6 +95,7 @@ std::vector<cl_kernel> get_kernels_binary(xcl_world world, const char * bin_name
     char * krnl_bin;
 
     const size_t krnl_size = load_file_to_memory(bin_name, &krnl_bin);
+    std::cout << "Binary Size: " << krnl_size << std::endl;
     cl_program program = clCreateProgramWithBinary(world.context, 1,
                                                    &world.device_id, &krnl_size,
                                                    (const unsigned char**) &krnl_bin, NULL, &err);

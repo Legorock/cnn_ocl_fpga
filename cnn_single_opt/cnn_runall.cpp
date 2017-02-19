@@ -17,10 +17,13 @@
 #include "helper.h"
 #include "Measure.h"
 
-const std::vector<std::string> kernel_names = {"load_model_ocm", "softmax_layer", 
+const std::vector<std::string> kernel_names = {"softmax_layer", 
                                                "max_pool1", "max_pool2", 
                                                "conv1", "conv2", "fc1", "fc2"};
-
+//const std::vector<std::string> kernel_names = {"load_model_ocm", "softmax_layer", 
+//                                               "max_pool1", "max_pool2", 
+//                                               "conv1", "conv2", "fc1", "fc2"};
+//
 // Considers only images that are 28x28 like MNIST dataset images
 void mnist_img_out(std::ostream& out, const std::vector<float>& img)
 {
@@ -91,14 +94,6 @@ float getAccuracy(const std::vector<std::vector<float>> & preds, const std::vect
     return static_cast<float>(num_correct) / preds.size();
 }
 
-// Get a xcl_world with Out Of Order command queue
-// A new OpenCL Command Queue is created!
-//xcl_world getWorldWithOOO(xcl_world world)
-//{
-//    clReleaseCommandQueue(world.command_queue);
-//
-//}
-
 // Constructor
 cnn_runall::cnn_runall(xcl_world & world, const char * clFilename, bool isBinary)
     : m_world(world), model_params(getModel("../lenet_data/model.csv"))
@@ -117,15 +112,6 @@ cnn_runall::cnn_runall(xcl_world & world, const char * clFilename, bool isBinary
         }
     }
     std::cout << "OpenCL Kernels Initialized!\n";
-//    for(auto & kernel : kernels)
-//    {
-//        std::string kernel_name = get_kernel_name(kernel);
-//        for(auto c : kernel_name)
-//        {
-//            std::cout << c << ' ';
-//        }
-//        std::cout << '\n' << "kernel name size: " << kernel_name.size() << std::endl;
-//    }
 
     std::cout << "MNIST Dataset is loading....\n";
     mnist::mnist_path = "../mnist/";
@@ -178,24 +164,17 @@ float cnn_runall::run_all()
     {
         DataBlob<float> img = {in_img, {28, 28, 1}};
 
-//        auto seq_img_class = seq_cnn_img_test(img, model_params);
-//        seq_class.push_back(seq_img_class.buffer);
+        auto seq_img_class = seq_cnn_img_test(img, model_params);
+        seq_class.push_back(seq_img_class.buffer);
 
-//        auto ocl_img_class = ocl_cnn_img_test(img, model_params, m_world, kernels);
         auto ocl_img_class = cnn_dev.runImg(img);
         ocl_class.push_back(ocl_img_class.buffer);
     }
 
     std::cout << std::fixed << std::setprecision(4);
-//    oclCNN device_cnn(model_params, m_world, kernels);
-//    DataBlob<float> img = {test_imgs[0], {28, 28, 1}};
-//    auto ocl_img_class = device_cnn.runImg(img);
-//    for(auto c : ocl_img_class.buffer)
-//    {
-//        std::cout << c << ' ';
-//    }std::cout << std::endl;
 //    std::cout << "Sequential CPU run accuracy: " << getAccuracy(seq_class, test_labels) * 100 << "%" << std::endl;
 //    std::cout << "OpenCL run accuracy: " << getAccuracy(ocl_class, test_labels) * 100 << "%" << std::endl;
+    std::cout << "Sequential run accuracy: " << getAccuracy(seq_class, partial_test_labels) * 100 << "%" << std::endl;
     std::cout << "OpenCL run accuracy: " << getAccuracy(ocl_class, partial_test_labels) * 100 << "%" << std::endl;
     return 0.0f;
 }

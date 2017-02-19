@@ -174,8 +174,8 @@ double getProfileFromEvent(cl_event event)
 oclCNN::oclCNN(std::map<std::string, DataBlob<float>> & model, xcl_world &  world, const std::vector<cl_kernel> & kernels)
     : m_model(model), m_world(world)
 {
-    cl_kernel load_model = get_kernel_from_vec(kernels, "load_model_ocm");
-    auto loadm_wg = get_kernel_reqd_wg_size(load_model, world.device_id);
+//    cl_kernel load_model = get_kernel_from_vec(kernels, "load_model_ocm");
+//    auto loadm_wg = get_kernel_reqd_wg_size(load_model, world.device_id);
 
     conv1 = get_kernel_from_vec(kernels, "conv1");
     conv1_wg = get_kernel_reqd_wg_size(conv1, world.device_id);
@@ -201,21 +201,22 @@ oclCNN::oclCNN(std::map<std::string, DataBlob<float>> & model, xcl_world &  worl
     cl_bd1 = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("bd1"));  // FullyConn. (dense) biases
     cl_wdo = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("wdo"));  // FullyConn. out (dense) weights
     cl_bdo = data_host_to_device(world, CL_MEM_READ_ONLY, model.at("bdo"));  // FullyConn. out (dense) biases
-    std::cout << "OpenCL Run Model Weights and Biases are Extracted and Transfered to Device!\n";
+    std::cout << "CNN Model Parameters are Extracted and Transfered to OpenCL Device!\n";
 
     clFinish(world.command_queue);
 
-    clSetKernelArg(load_model, 0, sizeof(cl_mem), &cl_wc1.buffer);
-    clSetKernelArg(load_model, 1, sizeof(cl_mem), &cl_bc1.buffer);
-    clSetKernelArg(load_model, 2, sizeof(cl_mem), &cl_wc2.buffer);
-    clSetKernelArg(load_model, 3, sizeof(cl_mem), &cl_bc2.buffer);
-    clSetKernelArg(load_model, 4, sizeof(cl_mem), &cl_wd1.buffer);
-    clSetKernelArg(load_model, 5, sizeof(cl_mem), &cl_bd1.buffer);
-    clSetKernelArg(load_model, 6, sizeof(cl_mem), &cl_wdo.buffer);
-    clSetKernelArg(load_model, 7, sizeof(cl_mem), &cl_bdo.buffer);
+    //clSetKernelArg(load_model, 0, sizeof(cl_mem), &cl_wc1.buffer);
+    //clSetKernelArg(load_model, 1, sizeof(cl_mem), &cl_bc1.buffer);
+    //clSetKernelArg(load_model, 2, sizeof(cl_mem), &cl_wc2.buffer);
+    //clSetKernelArg(load_model, 3, sizeof(cl_mem), &cl_bc2.buffer);
+    //clSetKernelArg(load_model, 4, sizeof(cl_mem), &cl_wd1.buffer);
+    //clSetKernelArg(load_model, 5, sizeof(cl_mem), &cl_bd1.buffer);
+    //clSetKernelArg(load_model, 6, sizeof(cl_mem), &cl_wdo.buffer);
+    //clSetKernelArg(load_model, 7, sizeof(cl_mem), &cl_bdo.buffer);
 
-    size_t global[3] = {1, 1, 1};
-    auto t_load_model = launch_kernel(world, load_model, global, loadm_wg.data());
+//    size_t global[3] = {1, 1, 1};
+//    auto t_load_model = launch_kernel(world, load_model, global, loadm_wg.data());
+//    std::cout << "CNN Model Parameters are Relocated to On-Chip Constant Memory!\n";
 
     conv1_out = emptyClDataBlob<float>(world, {24, 24, 32}, CL_MEM_READ_WRITE);
     pool1_out = emptyClDataBlob<float>(world, {12, 12, 32}, CL_MEM_READ_WRITE);
@@ -257,19 +258,15 @@ oclCNN::oclCNN(std::map<std::string, DataBlob<float>> & model, xcl_world &  worl
     clSetKernelArg(mpool2, 0, sizeof(cl_mem), &conv2_out.buffer);
     clSetKernelArg(mpool2, 1, sizeof(cl_mem), &pool2_out.buffer);
     std::cout << "OpenCL Kernels mpool1 and mpool2 arguments are bound!" << std::endl;
-//    cl_ushort in_neuron1 = static_cast<cl_ushort>(4 * 4 * 64);
     clSetKernelArg(fc1, 0, sizeof(cl_mem), &pool2_out.buffer);
     clSetKernelArg(fc1, 1, sizeof(cl_mem), &dens1_out.buffer);
     clSetKernelArg(fc1, 2, sizeof(cl_mem), &cl_wd1.buffer);
     clSetKernelArg(fc1, 3, sizeof(cl_mem), &cl_bd1.buffer);
-//    clSetKernelArg(fc1, 4, sizeof(cl_ushort), &in_neuron1);
     std::cout << "OpenCL Kernel fc1 arguments are bound!" << std::endl;
-//    cl_ushort in_neuron2 = static_cast<cl_ushort>(256);
     clSetKernelArg(fc2, 0, sizeof(cl_mem), &dens1_out.buffer);
     clSetKernelArg(fc2, 1, sizeof(cl_mem), &class_out.buffer);
     clSetKernelArg(fc2, 2, sizeof(cl_mem), &cl_wdo.buffer);
     clSetKernelArg(fc2, 3, sizeof(cl_mem), &cl_bdo.buffer);
-//    clSetKernelArg(fc2, 4, sizeof(cl_ushort), &in_neuron2);
     std::cout << "OpenCL Kernel fc2 arguments are bound!" << std::endl;
     clSetKernelArg(soft, 0, sizeof(cl_mem), &class_out.buffer);
     clSetKernelArg(soft, 1, sizeof(cl_mem), &softm_out.buffer);
@@ -301,25 +298,12 @@ DataBlob<float> oclCNN::runImg(DataBlob<float> & img)
 
     size_t global[3];
     auto cl_img = data_host_to_device(m_world, CL_MEM_READ_ONLY, img);
-    clFinish(m_world.command_queue);
     clSetKernelArg(conv1, 0, sizeof(cl_mem), &cl_img.buffer); 
     StopWatch<> timer;
-
-    std::cerr << "before conv1\n";
 
     global[0] = 24; global[1] = 24; global[2] = 32;
     auto t_conv1 = launch_kernel_async(m_world, conv1, global, conv1_wg.data());
     
-    auto err = clFinish(m_world.command_queue);
-    if(err != CL_SUCCESS)
-    {
-        std::cerr << "clFinished failed with err code: " << err << '\n';
-        std::cerr << "Error flag: " << oclErrorCode(err) << '\n';
-        std::exit(EXIT_FAILURE);
-    }
-
-    std::cerr << "after conv1\n";
-
     global[0] = 12; global[1] = 12; global[2] = 32;
     auto t_pool1 = launch_kernel_async(m_world, mpool1, global, mpool1_wg.data());
 
@@ -344,7 +328,7 @@ DataBlob<float> oclCNN::runImg(DataBlob<float> & img)
     auto cnn_outs = data_device_to_host(m_world, softm_out);
     clFinish(m_world.command_queue);
 
-    std::cout << "Total Time Elapsed: " << (std::size_t)fpga_elapsed << "\tus"  << '\n';
+    std::cout << "Total Time Elapsed: " << fpga_elapsed << "\tus"  << '\n';
 //    std::cout << "FPGA Elapsed Timings: \n";
 //    std::cout << "conv1: " << getProfileFromEvent(t_conv1) / 1000 << "\tus"  << '\n';
 //    std::cout << "pool1: " << getProfileFromEvent(t_pool1) / 1000 << "\tus"  << '\n';
@@ -354,5 +338,6 @@ DataBlob<float> oclCNN::runImg(DataBlob<float> & img)
 //    std::cout << "fc2  : " << getProfileFromEvent(t_fc2)   / 1000 << "\tus"  << '\n';
 //    std::cout << "soft : " << getProfileFromEvent(t_soft)  / 1000 << "\tus"  << '\n';
     std::cout << std::endl;
+    //print_classes(cnn_outs.buffer);
     return cnn_outs;
 }

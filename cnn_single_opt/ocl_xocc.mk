@@ -14,5 +14,5 @@ else
 	$KERNEL_FUNC="-k $KERNEL_FUNC"
 fi
 
-xocc --xdevice ${XDEVICE} -t hw -o ${XCLBIN_NAME}.xclbin --report estimate  -j 8 -O3 ${KERNEL_SRCS}
+xocc --xdevice ${XDEVICE} -t hw -o ${XCLBIN_NAME}_no_ocm.xclbin --report estimate  -j 8 -O3 ${KERNEL_SRCS}
 #xocc --xdevice ${XDEVICE} -t hw -o ${XCLBIN_NAME}.xclbin ${KERNEL_CUs} --report estimate -j 4 -O3 ${KERNEL_SRCS}
