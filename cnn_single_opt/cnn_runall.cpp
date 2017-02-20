@@ -146,7 +146,7 @@ cnn_runall::~cnn_runall()
 float cnn_runall::run_all()
 {
     std::cout << "ALL MNIST Run...\n";
-    const std::size_t num_test = 1;
+    const std::size_t num_test = 3;
 
     std::vector<std::vector<float>> seq_class;
     std::vector<std::vector<float>> ocl_class;
@@ -166,13 +166,13 @@ float cnn_runall::run_all()
 
         auto seq_img_class = seq_cnn_img_test(img, model_params);
         seq_class.push_back(seq_img_class.buffer);
-//        std::cout << "Sequential Output: \n";
-//        print_classes(seq_img_class.buffer);
+        std::cout << "Sequential Output: \n";
+        print_classes(seq_img_class.buffer);
 
         auto ocl_img_class = cnn_dev.runImg(img);
         ocl_class.push_back(ocl_img_class.buffer);
-//        std::cout << "OCL FPGA Output: \n";
-//        print_classes(ocl_img_class.buffer);
+        std::cout << "OCL FPGA Output: \n";
+        print_classes(ocl_img_class.buffer);
     }
     std::cout << std::endl;
 

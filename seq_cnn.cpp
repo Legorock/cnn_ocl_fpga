@@ -30,7 +30,7 @@ Data seq_cnn_img_test(const Data& img, const std::map<std::string, DataBlob<floa
     Data class_out = emptyDataBlob<float>({10}); 
     std::cout << "Intermediate data created!" << std::endl; 
 
-//    StopWatch<> timer;
+    StopWatch<> timer;
 //    StopWatch<> conv1_t;
 
     conv_seq(img.buffer, img.dims.data(),
@@ -111,8 +111,8 @@ Data seq_cnn_img_test(const Data& img, const std::map<std::string, DataBlob<floa
     softmax_seq(class_out.buffer, class_out.dims[0], class_out.buffer);
 
 //    auto t_soft = softmax_t.stop();
-//    auto cpu_elapsed = timer.stop();
-//    std::cout << "Total Elapsed Time: " << cpu_elapsed << " us" << '\n';
+    auto cpu_elapsed = timer.stop();
+    std::cout << std::fixed << "Total Elapsed Time: " << cpu_elapsed << " us" << '\n';
 //    std::cout << "CPU Elapsed Timings: \n";
 //    std::cout << "conv1: " << t_conv1 << "\tus"  << '\n';
 //    std::cout << "pool1: " << t_pool1 << "\tus"  << '\n';

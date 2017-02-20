@@ -229,32 +229,28 @@ oclCNN::oclCNN(std::map<std::string, DataBlob<float>> & model, xcl_world &  worl
 
 
 //    clSetKernelArg(conv1, 0, sizeof(cl_mem), &cl_img.buffer); 
-    clSetKernelArg(conv1, 1, sizeof(cl_mem), &conv1_out.buffer);
-//    clSetKernelArg(conv1, 2, sizeof(cl_mem), &cl_wc1.buffer);
-//    clSetKernelArg(conv1, 3, sizeof(cl_mem), &cl_bc1.buffer);
+
+//    clSetKernelArg(conv1, 1, sizeof(cl_mem), &conv1_out.buffer);
     std::cout << "OpenCL Kernel conv1 arguments are bound!" << std::endl;
-    clSetKernelArg(conv2, 0, sizeof(cl_mem), &pool1_out.buffer);
-    clSetKernelArg(conv2, 1, sizeof(cl_mem), &conv2_out.buffer);
-//    clSetKernelArg(conv2, 2, sizeof(cl_mem), &cl_wc2.buffer);
-//    clSetKernelArg(conv2, 3, sizeof(cl_mem), &cl_bc2.buffer);
+//    clSetKernelArg(conv2, 0, sizeof(cl_mem), &conv2_out.buffer);
+//    clSetKernelArg(conv2, 0, sizeof(cl_mem), &pool1_out.buffer);
+//    clSetKernelArg(conv2, 1, sizeof(cl_mem), &conv2_out.buffer);
     std::cout << "OpenCL Kernel conv2 arguments are bound!" << std::endl;
-    clSetKernelArg(mpool1, 0, sizeof(cl_mem), &conv1_out.buffer);
-    clSetKernelArg(mpool1, 1, sizeof(cl_mem), &pool1_out.buffer);
-    clSetKernelArg(mpool2, 0, sizeof(cl_mem), &conv2_out.buffer);
-    clSetKernelArg(mpool2, 1, sizeof(cl_mem), &pool2_out.buffer);
+//    clSetKernelArg(mpool1, 0, sizeof(cl_mem), &pool1_out.buffer);
+//    clSetKernelArg(mpool1, 0, sizeof(cl_mem), &conv1_out.buffer);
+//    clSetKernelArg(mpool1, 1, sizeof(cl_mem), &pool1_out.buffer);
+//    clSetKernelArg(mpool2, 0, sizeof(cl_mem), &conv2_out.buffer);
+//    clSetKernelArg(mpool2, 1, sizeof(cl_mem), &pool2_out.buffer);
     std::cout << "OpenCL Kernels mpool1 and mpool2 arguments are bound!" << std::endl;
-    clSetKernelArg(fc1, 0, sizeof(cl_mem), &pool2_out.buffer);
-    clSetKernelArg(fc1, 1, sizeof(cl_mem), &dens1_out.buffer);
-//    clSetKernelArg(fc1, 2, sizeof(cl_mem), &cl_wd1.buffer);
-//    clSetKernelArg(fc1, 3, sizeof(cl_mem), &cl_bd1.buffer);
+//    clSetKernelArg(fc1, 0, sizeof(cl_mem), &pool2_out.buffer);
+//    clSetKernelArg(fc1, 1, sizeof(cl_mem), &dens1_out.buffer);
     std::cout << "OpenCL Kernel fc1 arguments are bound!" << std::endl;
-    clSetKernelArg(fc2, 0, sizeof(cl_mem), &dens1_out.buffer);
-    clSetKernelArg(fc2, 1, sizeof(cl_mem), &class_out.buffer);
-//    clSetKernelArg(fc2, 2, sizeof(cl_mem), &cl_wdo.buffer);
-//    clSetKernelArg(fc2, 3, sizeof(cl_mem), &cl_bdo.buffer);
+//    clSetKernelArg(fc2, 0, sizeof(cl_mem), &dens1_out.buffer);
+//    clSetKernelArg(fc2, 1, sizeof(cl_mem), &class_out.buffer);
     std::cout << "OpenCL Kernel fc2 arguments are bound!" << std::endl;
-    clSetKernelArg(soft, 0, sizeof(cl_mem), &class_out.buffer);
-    clSetKernelArg(soft, 1, sizeof(cl_mem), &softm_out.buffer);
+    clSetKernelArg(soft, 0, sizeof(cl_mem), &softm_out.buffer);
+//    clSetKernelArg(soft, 0, sizeof(cl_mem), &class_out.buffer);
+//    clSetKernelArg(soft, 1, sizeof(cl_mem), &softm_out.buffer);
     std::cout << "OpenCL Kernel softmax arguments are bound!" << std::endl;
 }
 
@@ -313,7 +309,7 @@ DataBlob<float> oclCNN::runImg(DataBlob<float> & img)
     auto cnn_outs = data_device_to_host(m_world, softm_out);
     clFinish(m_world.command_queue);
 
-    std::cout << "Total Time Elapsed: " << fpga_elapsed << "\tus"  << '\n';
+    std::cout << std::fixed << "Total Time Elapsed: " << fpga_elapsed << "\tus"  << '\n';
 //    std::cout << "FPGA Elapsed Timings: \n";
 //    std::cout << "conv1: " << getProfileFromEvent(t_conv1) / 1000 << "\tus"  << '\n';
 //    std::cout << "pool1: " << getProfileFromEvent(t_pool1) / 1000 << "\tus"  << '\n';
