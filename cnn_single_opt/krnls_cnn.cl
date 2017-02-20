@@ -124,7 +124,7 @@ void max_pool2(__global DATA_TYPE * in, __global DATA_TYPE * out)
 // 28x28x1 --> 24x24x32
 #define CONV1_WG_X  4
 #define CONV1_WG_Y  4
-#define CONV1_WG_Z  4
+#define CONV1_WG_Z  16
 #define TILE1_X (CONV1_WG_X+MASK1_SIZE-1)
 #define TILE1_Y (CONV1_WG_Y+MASK1_SIZE-1)
 
@@ -152,8 +152,10 @@ void conv1(__global DATA_TYPE * in, __global DATA_TYPE * out)
         wait_group_events(1, &event);
         barrier(CLK_LOCAL_MEM_FENCE);
 
+        __attribute__((opencl_unroll_hint))
         for(size_t ch = 0; ch < MASK1_SIZE; ++ch)
         {
+            __attribute__((opencl_unroll_hint))
             for(size_t cw = 0; cw < MASK1_SIZE; ++cw)
             {
                 c += tile[getIdx2D(ch + get_local_id(1), cw + get_local_id(0), TILE1_X)]
@@ -172,7 +174,7 @@ void conv1(__global DATA_TYPE * in, __global DATA_TYPE * out)
 // 12x12x32 --> 8x8x64
 #define CONV2_WG_X  4
 #define CONV2_WG_Y  4
-#define CONV2_WG_Z  4
+#define CONV2_WG_Z  16
 #define TILE2_X (CONV1_WG_X+MASK2_SIZE-1)
 #define TILE2_Y (CONV1_WG_Y+MASK2_SIZE-1)
 
@@ -200,8 +202,10 @@ void conv2(__global DATA_TYPE * in, __global DATA_TYPE * out)
         wait_group_events(1, &event);
         barrier(CLK_LOCAL_MEM_FENCE);
 
+        __attribute__((opencl_unroll_hint))
         for(size_t ch = 0; ch < MASK2_SIZE; ++ch)
         {
+            __attribute__((opencl_unroll_hint))
             for(size_t cw = 0; cw < MASK2_SIZE; ++cw)
             {
                 c += tile[getIdx2D(ch + get_local_id(1), cw + get_local_id(0), TILE2_X)]
