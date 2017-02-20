@@ -8,7 +8,7 @@ _xocc_*
 .Xil
 *.ll
 emconfig.json
-sdaccel_profile*
+#sdaccel_profile*
 
 # object files
 *.o
