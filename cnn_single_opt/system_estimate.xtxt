@@ -5,7 +5,7 @@ Copyright:  Copyright 1986-2016 Xilinx, Inc. All Rights Reserved.
 ===============================================================================
 
 -------------------------------------------------------------------------------
-Design Name:      _xocc_compile_krnls_cnn_bin.dir
+Design Name:      _xocc_krnls_cnn_bin_cnn_hw.dir
 Target Device:    xilinx:adm-pcie-ku3:2ddr:3.0
 Target Clock:     250MHz
 -------------------------------------------------------------------------------
@@ -18,19 +18,19 @@ Total number of kernels: 8
 +-----------------------+------------+----------------------+-----------------+---------------+
 | Kernel Name           | Type       | Target               | OpenCL Library  | Compute Units |
 +-----------------------+------------+----------------------+-----------------+---------------+
-| fc2                   | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 8             |
-| conv2                 | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 8             |
-| load_model_ocm        | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 8             |
-| max_pool1             | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 8             |
-| softmax_layer         | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 8             |
-| fc1                   | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 8             |
-| max_pool2             | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 8             |
-| conv1                 | clc        | fpga0:OCL_REGION_0   | xcl_xocc        | 8             |
+| fc2                   | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
+| fc1                   | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
+| conv1                 | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
+| softmax_layer         | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
+| load_model_ocm        | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
+| max_pool2             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
+| max_pool1             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
+| conv2                 | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
 +-----------------------+------------+----------------------+-----------------+---------------+
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
-OpenCL Binary = xcl_xocc
+OpenCL Binary = bin_cnn_hw
 
 Kernels mapped to = clc_region
 
@@ -39,12 +39,12 @@ Timing Information (MHz)
 | Compute Unit         | Kernel Name             | Target Frequency        | Estimated Frequency     |
 +----------------------+-------------------------+-------------------------+-------------------------+
 | softmax_layer_1      | softmax_layer           | 250                     | 342.466                 |
+| conv1_1              | conv1                   | 250                     | 261.097                 |
 | load_model_ocm_1     | load_model_ocm          | 250                     | 342.466                 |
-| fc1_1                | fc1                     | 250                     | 342.466                 |
 | max_pool1_1          | max_pool1               | 250                     | 342.466                 |
 | max_pool2_1          | max_pool2               | 250                     | 342.466                 |
-| conv1_1              | conv1                   | 250                     | 261.097                 |
 | conv2_1              | conv2                   | 250                     | 261.097                 |
+| fc1_1                | fc1                     | 250                     | 342.466                 |
 | fc2_1                | fc2                     | 250                     | 342.466                 |
 +----------------------+-------------------------+-------------------------+-------------------------+
 
@@ -53,12 +53,12 @@ Latency Information (clock cycles)
 | Compute Unit         | Kernel Name          | Start Interval       | Best Case            | Avg Case             | Worst Case           |
 +----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
 | softmax_layer_1      | softmax_layer        | 429                  | 428                  | 428                  | 428                  |
+| conv1_1              | conv1                | undef                | undef                | undef                | undef                |
 | load_model_ocm_1     | load_model_ocm       | 318287               | 318286               | 318286               | 318286               |
-| fc1_1                | fc1                  | 170489               | 170488               | 170488               | 170488               |
 | max_pool1_1          | max_pool1            | 540                  | 539                  | 539                  | 539                  |
 | max_pool2_1          | max_pool2            | 539                  | 538                  | 538                  | 538                  |
-| conv1_1              | conv1                | undef                | undef                | undef                | undef                |
 | conv2_1              | conv2                | undef                | undef                | undef                | undef                |
+| fc1_1                | fc1                  | 340841               | 340840               | 340840               | 340840               |
 | fc2_1                | fc2                  | 14973                | 14972                | 14972                | 14972                |
 +----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
 
@@ -66,13 +66,13 @@ Area Information
 +----------------------+----------------------+------------+------------+------------+------------+
 | Compute Unit         | Kernel Name          | FF         | LUT        | DSP        | BRAM       |
 +----------------------+----------------------+------------+------------+------------+------------+
-| softmax_layer_1      | softmax_layer        | 3027       | 3865       | 9          | 2          |
+| softmax_layer_1      | softmax_layer        | 3539       | 4445       | 9          | 4          |
+| conv1_1              | conv1                | 15325      | 15894      | 7          | 27         |
 | load_model_ocm_1     | load_model_ocm       | 8576       | 12115      | 0          | 18         |
-| fc1_1                | fc1                  | 3941       | 4488       | 5          | 6          |
-| max_pool1_1          | max_pool1            | 3307       | 4142       | 0          | 2          |
-| max_pool2_1          | max_pool2            | 2940       | 3494       | 0          | 2          |
-| conv1_1              | conv1                | 14592      | 14839      | 7          | 13         |
-| conv2_1              | conv2                | 14425      | 14557      | 7          | 13         |
-| fc2_1                | fc2                  | 3998       | 4475       | 5          | 6          |
+| max_pool1_1          | max_pool1            | 4366       | 5122       | 0          | 6          |
+| max_pool2_1          | max_pool2            | 3895       | 4334       | 0          | 6          |
+| conv2_1              | conv2                | 15547      | 15950      | 7          | 17         |
+| fc1_1                | fc1                  | 4967       | 5650       | 5          | 10         |
+| fc2_1                | fc2                  | 5022       | 5635       | 5          | 10         |
 +----------------------+----------------------+------------+------------+------------+------------+
 -------------------------------------------------------------------------------

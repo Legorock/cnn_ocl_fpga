@@ -146,7 +146,7 @@ cnn_runall::~cnn_runall()
 float cnn_runall::run_all()
 {
     std::cout << "ALL MNIST Run...\n";
-    const std::size_t num_test = 3;
+    const std::size_t num_test = 1;
 
     std::vector<std::vector<float>> seq_class;
     std::vector<std::vector<float>> ocl_class;
@@ -177,8 +177,6 @@ float cnn_runall::run_all()
     std::cout << std::endl;
 
     std::cout << std::fixed << std::setprecision(4);
-//    std::cout << "Sequential CPU run accuracy: " << getAccuracy(seq_class, test_labels) * 100 << "%" << std::endl;
-//    std::cout << "OpenCL run accuracy: " << getAccuracy(ocl_class, test_labels) * 100 << "%" << std::endl;
     std::cout << "Sequential run accuracy: " << getAccuracy(seq_class, partial_test_labels) * 100 << "%" << std::endl;
     std::cout << "OpenCL run accuracy: " << getAccuracy(ocl_class, partial_test_labels) * 100 << "%" << std::endl;
     return 0.0f;

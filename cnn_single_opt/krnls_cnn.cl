@@ -60,6 +60,7 @@ global DATA_TYPE POOL2_OUT[P2_OUT];
 global DATA_TYPE FC1_OUT[D1_OUT];
 global DATA_TYPE FC2_OUT[D2_OUT];
 
+
 // A Kernel only to Move Off-Chip Constant memory to
 // On-Chip Global Memory. CNN model parameters are 
 // constant across different inference passes.
@@ -96,7 +97,6 @@ void load_model_ocm(__constant DATA_TYPE * conv1_w, __constant DATA_TYPE * conv1
 // 24x24 --> 12x12 
 // (num of feature maps defined by 3rd dim of global work size)
 __kernel __attribute__((reqd_work_group_size(4, 4, 4)))
-//void max_pool1(__global DATA_TYPE * in, __global DATA_TYPE * out)
 void max_pool1()
 {
     size_t w = get_global_id(0);
@@ -110,7 +110,6 @@ void max_pool1()
 
     __global DATA_TYPE * in = CONV1_OUT;
 
-    //out[out_idx] = max(in[idx_tl], max(in[idx_tr], max(in[idx_bl], in[idx_br])));
     POOL1_OUT[out_idx] = max(in[idx_tl], max(in[idx_tr], max(in[idx_bl], in[idx_br])));
     return;
 }
@@ -122,7 +121,6 @@ void max_pool1()
 // 8x8 --> 4x4 
 // (num of feature maps defined by 3rd dim of global work size)
 __kernel __attribute__((reqd_work_group_size(4, 4, 4)))
-//void max_pool2(__global DATA_TYPE * in, __global DATA_TYPE * out)
 void max_pool2()
 {
     size_t w = get_global_id(0);
@@ -136,7 +134,6 @@ void max_pool2()
 
     __global DATA_TYPE * in = CONV2_OUT;
 
-    //out[out_idx] = max(in[idx_tl], max(in[idx_tr], max(in[idx_bl], in[idx_br])));
     POOL2_OUT[out_idx] = max(in[idx_tl], max(in[idx_tr], max(in[idx_bl], in[idx_br])));
     return;
 }
@@ -146,14 +143,13 @@ void max_pool2()
 // stride: 1
 // and 'VALID' padding policy
 // 28x28x1 --> 24x24x32
-#define CONV1_WG_X  4
-#define CONV1_WG_Y  4
-#define CONV1_WG_Z  16
+#define CONV1_WG_X  8
+#define CONV1_WG_Y  8
+#define CONV1_WG_Z  32
 #define TILE1_X (CONV1_WG_X+MASK1_SIZE-1)
 #define TILE1_Y (CONV1_WG_Y+MASK1_SIZE-1)
 
 __kernel __attribute__((reqd_work_group_size(CONV1_WG_X, CONV1_WG_Y, CONV1_WG_Z)))
-//void conv1(__global DATA_TYPE * in, __global DATA_TYPE * out)
 void conv1(__global DATA_TYPE * in)
 {
     __local DATA_TYPE tile[TILE1_X * TILE1_Y];
@@ -170,7 +166,6 @@ void conv1(__global DATA_TYPE * in)
     __attribute__((xcl_pipeline_loop))
     for(size_t cd = 0; cd < MASK1_DEPTH; ++cd)
     {
- //       __attribute__((opencl_unroll_hint))
         for(size_t i = 0; i < TILE1_Y; ++i)
             event = async_work_group_copy(&tile[i * TILE1_X], &in[in_idx + i * IWIDTH1], TILE1_X, event);
         in_idx += IHEIGHT1 * IWIDTH1;
@@ -189,7 +184,6 @@ void conv1(__global DATA_TYPE * in)
             }
         }
     }
- //   out[out_idx] = relu(c + bc1[d]);
     CONV1_OUT[out_idx] = relu(c + bc1[d]);   
     return;
 }
@@ -201,12 +195,11 @@ void conv1(__global DATA_TYPE * in)
 // 12x12x32 --> 8x8x64
 #define CONV2_WG_X  4
 #define CONV2_WG_Y  4
-#define CONV2_WG_Z  16
+#define CONV2_WG_Z  32
 #define TILE2_X (CONV1_WG_X+MASK2_SIZE-1)
 #define TILE2_Y (CONV1_WG_Y+MASK2_SIZE-1)
 
 __kernel __attribute__((reqd_work_group_size(CONV2_WG_X, CONV2_WG_Y, CONV2_WG_Z)))
-//void conv2(__global DATA_TYPE * in, __global DATA_TYPE * out)
 void conv2()
 {
     __local DATA_TYPE tile[TILE2_X * TILE2_Y];
@@ -225,7 +218,6 @@ void conv2()
     __attribute__((xcl_pipeline_loop))
     for(size_t cd = 0; cd < MASK2_DEPTH; ++cd)
     {
-//        __attribute__((opencl_unroll_hint))
         for(size_t i = 0; i < TILE2_Y; ++i)
             event = async_work_group_copy(&tile[i * TILE2_X], &in[in_idx + i * IWIDTH2], TILE2_X, event);
         in_idx += IHEIGHT2 * IWIDTH2;
@@ -244,7 +236,6 @@ void conv2()
             }
         }
     }
-    //out[out_idx] = relu(c + bc2[d]);
     CONV2_OUT[out_idx] = relu(c + bc2[d]);
     return;
 }
@@ -254,7 +245,6 @@ void conv2()
 // number of output neuron
 #define FC1_WG_NUM 8   // Number of work-groups is 8
 __kernel __attribute__((reqd_work_group_size((ONEURON1/FC1_WG_NUM), 1, 1)))
-//void fc1(__global DATA_TYPE * in, __global DATA_TYPE * out)
 void fc1()
 {
     __global DATA_TYPE * in = POOL2_OUT;
@@ -273,7 +263,6 @@ void fc1()
 
 #define FC2_WG_NUM 2    // Number of work-groups is 2
 __kernel __attribute__((reqd_work_group_size((ONEURON2/FC2_WG_NUM), 1, 1)))
-//void fc2(__global DATA_TYPE * in, __global DATA_TYPE * out)
 void fc2()
 {
     __global DATA_TYPE * in = FC1_OUT;
@@ -291,7 +280,6 @@ void fc2()
 }
 
 __kernel  __attribute__((reqd_work_group_size(1, 1, 1)))
-//void softmax_layer(__global DATA_TYPE * in, __global DATA_TYPE * out)
 void softmax_layer(__global DATA_TYPE * out)
 {
     __global DATA_TYPE * in = FC2_OUT;

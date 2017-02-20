@@ -229,29 +229,7 @@ oclCNN::oclCNN(std::map<std::string, DataBlob<float>> & model, xcl_world &  worl
 
 
 //    clSetKernelArg(conv1, 0, sizeof(cl_mem), &cl_img.buffer); 
-
-//    clSetKernelArg(conv1, 1, sizeof(cl_mem), &conv1_out.buffer);
-    std::cout << "OpenCL Kernel conv1 arguments are bound!" << std::endl;
-//    clSetKernelArg(conv2, 0, sizeof(cl_mem), &conv2_out.buffer);
-//    clSetKernelArg(conv2, 0, sizeof(cl_mem), &pool1_out.buffer);
-//    clSetKernelArg(conv2, 1, sizeof(cl_mem), &conv2_out.buffer);
-    std::cout << "OpenCL Kernel conv2 arguments are bound!" << std::endl;
-//    clSetKernelArg(mpool1, 0, sizeof(cl_mem), &pool1_out.buffer);
-//    clSetKernelArg(mpool1, 0, sizeof(cl_mem), &conv1_out.buffer);
-//    clSetKernelArg(mpool1, 1, sizeof(cl_mem), &pool1_out.buffer);
-//    clSetKernelArg(mpool2, 0, sizeof(cl_mem), &conv2_out.buffer);
-//    clSetKernelArg(mpool2, 1, sizeof(cl_mem), &pool2_out.buffer);
-    std::cout << "OpenCL Kernels mpool1 and mpool2 arguments are bound!" << std::endl;
-//    clSetKernelArg(fc1, 0, sizeof(cl_mem), &pool2_out.buffer);
-//    clSetKernelArg(fc1, 1, sizeof(cl_mem), &dens1_out.buffer);
-    std::cout << "OpenCL Kernel fc1 arguments are bound!" << std::endl;
-//    clSetKernelArg(fc2, 0, sizeof(cl_mem), &dens1_out.buffer);
-//    clSetKernelArg(fc2, 1, sizeof(cl_mem), &class_out.buffer);
-    std::cout << "OpenCL Kernel fc2 arguments are bound!" << std::endl;
     clSetKernelArg(soft, 0, sizeof(cl_mem), &softm_out.buffer);
-//    clSetKernelArg(soft, 0, sizeof(cl_mem), &class_out.buffer);
-//    clSetKernelArg(soft, 1, sizeof(cl_mem), &softm_out.buffer);
-    std::cout << "OpenCL Kernel softmax arguments are bound!" << std::endl;
 }
 
 oclCNN::~oclCNN()
@@ -319,6 +297,5 @@ DataBlob<float> oclCNN::runImg(DataBlob<float> & img)
 //    std::cout << "fc2  : " << getProfileFromEvent(t_fc2)   / 1000 << "\tus"  << '\n';
 //    std::cout << "soft : " << getProfileFromEvent(t_soft)  / 1000 << "\tus"  << '\n';
     std::cout << std::endl;
-    //print_classes(cnn_outs.buffer);
     return cnn_outs;
 }
