@@ -21,10 +21,10 @@ Total number of kernels: 8
 | fc2                   | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
 | fc1                   | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
 | conv1                 | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
+| max_pool1             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
 | softmax_layer         | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
 | load_model_ocm        | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
 | max_pool2             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
-| max_pool1             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
 | conv2                 | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
 +-----------------------+------------+----------------------+-----------------+---------------+
 -------------------------------------------------------------------------------
@@ -67,11 +67,11 @@ Area Information
 | Compute Unit         | Kernel Name          | FF         | LUT        | DSP        | BRAM       |
 +----------------------+----------------------+------------+------------+------------+------------+
 | softmax_layer_1      | softmax_layer        | 3539       | 4445       | 9          | 4          |
-| conv1_1              | conv1                | 15325      | 15894      | 7          | 27         |
+| conv1_1              | conv1                | 15136      | 15474      | 7          | 15         |
 | load_model_ocm_1     | load_model_ocm       | 8576       | 12115      | 0          | 18         |
 | max_pool1_1          | max_pool1            | 4366       | 5122       | 0          | 6          |
 | max_pool2_1          | max_pool2            | 3895       | 4334       | 0          | 6          |
-| conv2_1              | conv2                | 15547      | 15950      | 7          | 17         |
+| conv2_1              | conv2                | 15662      | 16183      | 7          | 29         |
 | fc1_1                | fc1                  | 4967       | 5650       | 5          | 10         |
 | fc2_1                | fc2                  | 5022       | 5635       | 5          | 10         |
 +----------------------+----------------------+------------+------------+------------+------------+

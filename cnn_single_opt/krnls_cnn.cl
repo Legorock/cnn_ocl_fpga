@@ -143,8 +143,8 @@ void max_pool2()
 // stride: 1
 // and 'VALID' padding policy
 // 28x28x1 --> 24x24x32
-#define CONV1_WG_X  8
-#define CONV1_WG_Y  8
+#define CONV1_WG_X  4
+#define CONV1_WG_Y  4
 #define CONV1_WG_Z  32
 #define TILE1_X (CONV1_WG_X+MASK1_SIZE-1)
 #define TILE1_Y (CONV1_WG_Y+MASK1_SIZE-1)
@@ -193,11 +193,11 @@ void conv1(__global DATA_TYPE * in)
 // stride: 1
 // and 'VALID' padding policy
 // 12x12x32 --> 8x8x64
-#define CONV2_WG_X  4
-#define CONV2_WG_Y  4
+#define CONV2_WG_X  8
+#define CONV2_WG_Y  8
 #define CONV2_WG_Z  32
-#define TILE2_X (CONV1_WG_X+MASK2_SIZE-1)
-#define TILE2_Y (CONV1_WG_Y+MASK2_SIZE-1)
+#define TILE2_X (CONV2_WG_X+MASK2_SIZE-1)
+#define TILE2_Y (CONV2_WG_Y+MASK2_SIZE-1)
 
 __kernel __attribute__((reqd_work_group_size(CONV2_WG_X, CONV2_WG_Y, CONV2_WG_Z)))
 void conv2()
