@@ -17,9 +17,6 @@
 #include "helper.h"
 #include "Measure.h"
 
-//const std::vector<std::string> kernel_names = {"softmax_layer", 
-//                                               "max_pool1", "max_pool2", 
-//                                               "conv1", "conv2", "fc1", "fc2"};
 const std::vector<std::string> kernel_names = {"load_model_ocm", "softmax_layer", 
                                                "max_pool1", "max_pool2", 
                                                "conv1", "conv2", "fc1", "fc2"};
@@ -74,7 +71,6 @@ std::map<std::string, Data> getModel(const std::string & model_path)
     return importer.get_buffers();
 }
 
-//float getAccuracy(const std::vector<std::uint8_t> & preds, const std::vector<std::uint8_t> & labels)
 float getAccuracy(const std::vector<std::vector<float>> & preds, const std::vector<std::vector<float>> & labels)
 {
     std::size_t num_correct = 0;

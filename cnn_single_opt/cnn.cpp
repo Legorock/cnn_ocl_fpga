@@ -6,7 +6,6 @@
 // OpenCL includes
 #include "xcl.h"
 
-//#include "cnn_test.h"
 #include "cnn_runall.h"
 
 int main(int argc, char ** argv)
@@ -20,24 +19,16 @@ int main(int argc, char ** argv)
     const char * target_device_name = TARGET_DEVICE;
     const char * target_vendor = "Xilinx";
 
-//    if(argc != 3 || (std::string(argv[2]) != "testimg" && std::string(argv[2]) != "runall"))
-//    {
-//        std::cout << "Usage: " << argv[0] << " <xclbin>" << " <{'testimg', 'runall'}>" << std::endl;
-//    	return -1;
-//    }
-
     if(argc != 2)
     {
         std::cerr << "Usage: " << argv[0] << " <xclbin>" << std::endl;
         return -1;
     }
     std::string xclbinFilename(argv[1]);
-//    std::string exe_mode(argv[2]);
 
     std::cout << "Vendor: " << target_vendor << '\n'
               << "Device: " << target_device_name << '\n'
               << "XCLBIN: " << xclbinFilename << '\n';
-         //     << "EXEMOD: " << exe_mode << std::endl;
 
     xcl_world world;
     bool is_binary;
@@ -66,23 +57,6 @@ int main(int argc, char ** argv)
     cnn_runall runner(world, xclbinFilename.c_str(), is_binary);
     auto runall_err = runner.run_all();
     std::cout << "Runall error: " << runall_err << std::endl;
-//    if(exe_mode == "testimg")
-//    {
-//        cnn_test t(world, xclbinFilename.c_str(), is_binary);
-//        auto test_err = t.test_img();
-//        std::cout << "Test error: " << test_err << std::endl;
-//    }
-//    else if(exe_mode == "runall")
-//    {
-//        cnn_runall r(world, xclbinFilename.c_str(), is_binary);
-//        auto runall_err = r.run_all();
-//        std::cout << "Runall error: " << runall_err << std::endl;
-//    }
-//    else
-//    {
-//        std::cerr << "Unknown execution mode!\n";
-//        return -1;   
-//    }
 
     xcl_release_world(world);
     return 0;
