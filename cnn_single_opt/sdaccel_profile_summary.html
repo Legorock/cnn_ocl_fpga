@@ -16,11 +16,11 @@
 </STYLE>
 <h1>SDAccel Profile Summary</h1>
 <br>
-<h3>Generated on: 2017-02-21 10:28:53</h3>
+<h3>Generated on: 2017-02-22 13:25:06</h3>
 <h3>Profiled application: cnn</h3>
 <h3>Target platform: Xilinx</h3>
 <h3>Target devices: xilinx:adm-pcie-ku3:2ddr:3.0-0</h3>
-<h3>Flow mode: CPU Emulation</h3>
+<h3>Flow mode: System Run</h3>
 <h3>Tool version: 2016.2</h3>
 <br>
 <br>
@@ -35,29 +35,29 @@
 <TH>Average Time (ms)</TH>
 <TH>Maximum Time (ms)</TH>
 </TR>
-<TR><TD>clFinish</TD><TD>4</TD><TD>6.35297</TD><TD>0.000498</TD><TD>1.58824</TD><TD>5.37121</TD></TR>
-<TR><TD>clCreateProgramWithBinary</TD><TD>1</TD><TD>3.99889</TD><TD>3.99889</TD><TD>3.99889</TD><TD>3.99889</TD></TR>
-<TR><TD>clEnqueueWriteBuffer</TD><TD>9</TD><TD>0.988818</TD><TD>0.042164</TD><TD>0.109869</TD><TD>0.42286</TD></TR>
-<TR><TD>clWaitForEvents</TD><TD>10</TD><TD>0.971054</TD><TD>0.038834</TD><TD>0.0971054</TD><TD>0.419387</TD></TR>
-<TR><TD>clGetPlatformIDs</TD><TD>3</TD><TD>0.139641</TD><TD>0.000442</TD><TD>0.046547</TD><TD>0.137963</TD></TR>
-<TR><TD>clEnqueueNDRangeKernel</TD><TD>8</TD><TD>0.106965</TD><TD>0.004056</TD><TD>0.0133706</TD><TD>0.06738</TD></TR>
-<TR><TD>clEnqueueReadBuffer</TD><TD>1</TD><TD>0.046947</TD><TD>0.046947</TD><TD>0.046947</TD><TD>0.046947</TD></TR>
-<TR><TD>clGetKernelInfo</TD><TD>72</TD><TD>0.030121</TD><TD>0.000321</TD><TD>0.000418347</TD><TD>0.005303</TD></TR>
-<TR><TD>clCreateBuffer</TD><TD>44</TD><TD>0.026486</TD><TD>0.000342</TD><TD>0.000601955</TD><TD>0.003139</TD></TR>
-<TR><TD>clReleaseMemObject</TD><TD>15</TD><TD>0.023198</TD><TD>0.000891</TD><TD>0.00154653</TD><TD>0.007227</TD></TR>
-<TR><TD>clCreateKernel</TD><TD>8</TD><TD>0.017485</TD><TD>0.001605</TD><TD>0.00218562</TD><TD>0.004383</TD></TR>
-<TR><TD>clReleaseKernel</TD><TD>8</TD><TD>0.015074</TD><TD>0.001421</TD><TD>0.00188425</TD><TD>0.00412</TD></TR>
-<TR><TD>clSetKernelArg</TD><TD>10</TD><TD>0.00704</TD><TD>0.000477</TD><TD>0.000704</TD><TD>0.00128</TD></TR>
-<TR><TD>clCreateContext</TD><TD>1</TD><TD>0.004918</TD><TD>0.004918</TD><TD>0.004918</TD><TD>0.004918</TD></TR>
-<TR><TD>clGetKernelWorkGroupInfo</TD><TD>8</TD><TD>0.003373</TD><TD>0.000274</TD><TD>0.000421625</TD><TD>0.001149</TD></TR>
-<TR><TD>clGetDeviceInfo</TD><TD>1</TD><TD>0.002733</TD><TD>0.002733</TD><TD>0.002733</TD><TD>0.002733</TD></TR>
-<TR><TD>clCreateCommandQueue</TD><TD>1</TD><TD>0.002569</TD><TD>0.002569</TD><TD>0.002569</TD><TD>0.002569</TD></TR>
-<TR><TD>clGetPlatformInfo</TD><TD>1</TD><TD>0.002232</TD><TD>0.002232</TD><TD>0.002232</TD><TD>0.002232</TD></TR>
-<TR><TD>clGetEventProfilingInfo</TD><TD>2</TD><TD>0.001877</TD><TD>0.000362</TD><TD>0.0009385</TD><TD>0.001515</TD></TR>
-<TR><TD>clBuildProgram</TD><TD>1</TD><TD>0.001855</TD><TD>0.001855</TD><TD>0.001855</TD><TD>0.001855</TD></TR>
-<TR><TD>clGetDeviceIDs</TD><TD>1</TD><TD>0.001511</TD><TD>0.001511</TD><TD>0.001511</TD><TD>0.001511</TD></TR>
-<TR><TD>clReleaseCommandQueue</TD><TD>1</TD><TD>0.001199</TD><TD>0.001199</TD><TD>0.001199</TD><TD>0.001199</TD></TR>
-<TR><TD>clReleaseContext</TD><TD>1</TD><TD>0.00065</TD><TD>0.00065</TD><TD>0.00065</TD><TD>0.00065</TD></TR>
+<TR><TD>clCreateProgramWithBinary</TD><TD>1</TD><TD>12010</TD><TD>12010</TD><TD>12010</TD><TD>12010</TD></TR>
+<TR><TD>clCreateContext</TD><TD>1</TD><TD>10092</TD><TD>10092</TD><TD>10092</TD><TD>10092</TD></TR>
+<TR><TD>clFinish</TD><TD>4</TD><TD>87.9684</TD><TD>0.000804</TD><TD>21.9921</TD><TD>84.9896</TD></TR>
+<TR><TD>clWaitForEvents</TD><TD>10</TD><TD>0.956296</TD><TD>0.039655</TD><TD>0.0956296</TD><TD>0.401651</TD></TR>
+<TR><TD>clEnqueueWriteBuffer</TD><TD>9</TD><TD>0.955713</TD><TD>0.043187</TD><TD>0.10619</TD><TD>0.405565</TD></TR>
+<TR><TD>clGetPlatformIDs</TD><TD>3</TD><TD>0.148279</TD><TD>0.001304</TD><TD>0.0494263</TD><TD>0.140536</TD></TR>
+<TR><TD>clEnqueueNDRangeKernel</TD><TD>8</TD><TD>0.14488</TD><TD>0.004954</TD><TD>0.01811</TD><TD>0.078034</TD></TR>
+<TR><TD>clEnqueueReadBuffer</TD><TD>1</TD><TD>0.065687</TD><TD>0.065687</TD><TD>0.065687</TD><TD>0.065687</TD></TR>
+<TR><TD>clGetKernelInfo</TD><TD>72</TD><TD>0.02943</TD><TD>0.000321</TD><TD>0.00040875</TD><TD>0.004709</TD></TR>
+<TR><TD>clCreateBuffer</TD><TD>44</TD><TD>0.027436</TD><TD>0.000348</TD><TD>0.000623545</TD><TD>0.003129</TD></TR>
+<TR><TD>clReleaseMemObject</TD><TD>15</TD><TD>0.0272</TD><TD>0.000711</TD><TD>0.00181333</TD><TD>0.006243</TD></TR>
+<TR><TD>clCreateKernel</TD><TD>8</TD><TD>0.02131</TD><TD>0.001932</TD><TD>0.00266375</TD><TD>0.005992</TD></TR>
+<TR><TD>clReleaseKernel</TD><TD>8</TD><TD>0.013772</TD><TD>0.001217</TD><TD>0.0017215</TD><TD>0.003864</TD></TR>
+<TR><TD>clSetKernelArg</TD><TD>10</TD><TD>0.006249</TD><TD>0.00042</TD><TD>0.0006249</TD><TD>0.001138</TD></TR>
+<TR><TD>clCreateCommandQueue</TD><TD>1</TD><TD>0.003656</TD><TD>0.003656</TD><TD>0.003656</TD><TD>0.003656</TD></TR>
+<TR><TD>clGetKernelWorkGroupInfo</TD><TD>8</TD><TD>0.003654</TD><TD>0.000287</TD><TD>0.00045675</TD><TD>0.001125</TD></TR>
+<TR><TD>clGetDeviceInfo</TD><TD>1</TD><TD>0.003023</TD><TD>0.003023</TD><TD>0.003023</TD><TD>0.003023</TD></TR>
+<TR><TD>clGetPlatformInfo</TD><TD>1</TD><TD>0.002432</TD><TD>0.002432</TD><TD>0.002432</TD><TD>0.002432</TD></TR>
+<TR><TD>clBuildProgram</TD><TD>1</TD><TD>0.002332</TD><TD>0.002332</TD><TD>0.002332</TD><TD>0.002332</TD></TR>
+<TR><TD>clGetEventProfilingInfo</TD><TD>2</TD><TD>0.001859</TD><TD>0.000377</TD><TD>0.0009295</TD><TD>0.001482</TD></TR>
+<TR><TD>clGetDeviceIDs</TD><TD>1</TD><TD>0.001426</TD><TD>0.001426</TD><TD>0.001426</TD><TD>0.001426</TD></TR>
+<TR><TD>clReleaseCommandQueue</TD><TD>1</TD><TD>0.001183</TD><TD>0.001183</TD><TD>0.001183</TD><TD>0.001183</TD></TR>
+<TR><TD>clReleaseContext</TD><TD>1</TD><TD>0.000612</TD><TD>0.000612</TD><TD>0.000612</TD><TD>0.000612</TD></TR>
 </TABLE>
 <br>
 <h2>Kernel Execution</h2>
@@ -71,14 +71,14 @@
 <TH>Average Time (ms)</TH>
 <TH>Maximum Time (ms)</TH>
 </TR>
-<TR><TD>conv1</TD><TD>1</TD><TD>1.2041</TD><TD>1.2041</TD><TD>1.2041</TD><TD>1.2041</TD></TR>
-<TR><TD>conv2</TD><TD>1</TD><TD>2.35306</TD><TD>2.35306</TD><TD>2.35306</TD><TD>2.35306</TD></TR>
-<TR><TD>fc1</TD><TD>1</TD><TD>0.433638</TD><TD>0.433638</TD><TD>0.433638</TD><TD>0.433638</TD></TR>
-<TR><TD>fc2</TD><TD>1</TD><TD>0.03614</TD><TD>0.03614</TD><TD>0.03614</TD><TD>0.03614</TD></TR>
-<TR><TD>load_model_ocm</TD><TD>1</TD><TD>0.227004</TD><TD>0.227004</TD><TD>0.227004</TD><TD>0.227004</TD></TR>
-<TR><TD>max_pool1</TD><TD>1</TD><TD>1.02964</TD><TD>1.02964</TD><TD>1.02964</TD><TD>1.02964</TD></TR>
-<TR><TD>max_pool2</TD><TD>1</TD><TD>0.312411</TD><TD>0.312411</TD><TD>0.312411</TD><TD>0.312411</TD></TR>
-<TR><TD>softmax_layer</TD><TD>1</TD><TD>0.020738</TD><TD>0.020738</TD><TD>0.020738</TD><TD>0.020738</TD></TR>
+<TR><TD>conv1</TD><TD>1</TD><TD>6.04417</TD><TD>6.04417</TD><TD>6.04417</TD><TD>6.04417</TD></TR>
+<TR><TD>conv2</TD><TD>1</TD><TD>65.2915</TD><TD>65.2915</TD><TD>65.2915</TD><TD>65.2915</TD></TR>
+<TR><TD>fc1</TD><TD>1</TD><TD>11.5241</TD><TD>11.5241</TD><TD>11.5241</TD><TD>11.5241</TD></TR>
+<TR><TD>fc2</TD><TD>1</TD><TD>0.161081</TD><TD>0.161081</TD><TD>0.161081</TD><TD>0.161081</TD></TR>
+<TR><TD>load_model_ocm</TD><TD>1</TD><TD>1.53449</TD><TD>1.53449</TD><TD>1.53449</TD><TD>1.53449</TD></TR>
+<TR><TD>max_pool1</TD><TD>1</TD><TD>1.44151</TD><TD>1.44151</TD><TD>1.44151</TD><TD>1.44151</TD></TR>
+<TR><TD>max_pool2</TD><TD>1</TD><TD>0.32784</TD><TD>0.32784</TD><TD>0.32784</TD><TD>0.32784</TD></TR>
+<TR><TD>softmax_layer</TD><TD>1</TD><TD>0.019523</TD><TD>0.019523</TD><TD>0.019523</TD><TD>0.019523</TD></TR>
 </TABLE>
 <br>
 <h2>Compute Unit Utilization</h2>
@@ -96,14 +96,14 @@
 <TH>Average Time (ms)</TH>
 <TH>Maximum Time (ms)</TH>
 </TR>
-<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>conv1_1</TD><TD>conv1</TD><TD>24:24:32</TD><TD>4:4:32</TD><TD>36</TD><TD>1.0831</TD><TD>0.020144</TD><TD>0.0300861</TD><TD>0.071966</TD></TR>
-<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>conv2_1</TD><TD>conv2</TD><TD>8:8:64</TD><TD>8:8:32</TD><TD>2</TD><TD>2.34486</TD><TD>1.15722</TD><TD>1.17243</TD><TD>1.18764</TD></TR>
-<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>fc1_1</TD><TD>fc1</TD><TD>256:1:1</TD><TD>32:1:1</TD><TD>8</TD><TD>0.407743</TD><TD>0.049454</TD><TD>0.0509679</TD><TD>0.054602</TD></TR>
-<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>fc2_1</TD><TD>fc2</TD><TD>10:1:1</TD><TD>5:1:1</TD><TD>2</TD><TD>0.028815</TD><TD>0.013246</TD><TD>0.0144075</TD><TD>0.015569</TD></TR>
-<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>load_model_ocm_1</TD><TD>load_model_ocm</TD><TD>1:1:1</TD><TD>1:1:1</TD><TD>1</TD><TD>0.216588</TD><TD>0.216588</TD><TD>0.216588</TD><TD>0.216588</TD></TR>
-<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>max_pool1_1</TD><TD>max_pool1</TD><TD>12:12:32</TD><TD>4:4:4</TD><TD>72</TD><TD>0.774162</TD><TD>0.009918</TD><TD>0.0107522</TD><TD>0.018584</TD></TR>
-<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>max_pool2_1</TD><TD>max_pool2</TD><TD>4:4:64</TD><TD>4:4:4</TD><TD>16</TD><TD>0.255292</TD><TD>0.010235</TD><TD>0.0159557</TD><TD>0.060915</TD></TR>
-<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>softmax_layer_1</TD><TD>softmax_layer</TD><TD>1:1:1</TD><TD>1:1:1</TD><TD>1</TD><TD>0.014048</TD><TD>0.014048</TD><TD>0.014048</TD><TD>0.014048</TD></TR>
+<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>conv1_1</TD><TD>conv1</TD><TD>24:24:32</TD><TD>24:24:4</TD><TD>8</TD><TD>6.01577</TD><TD>0.749696</TD><TD>0.751971</TD><TD>0.76042</TD></TR>
+<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>conv2_1</TD><TD>conv2</TD><TD>8:8:64</TD><TD>4:4:16</TD><TD>16</TD><TD>65.237</TD><TD>4.07645</TD><TD>4.07732</TD><TD>4.07934</TD></TR>
+<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>fc1_1</TD><TD>fc1</TD><TD>256:1:1</TD><TD>32:1:1</TD><TD>8</TD><TD>11.4976</TD><TD>1.43642</TD><TD>1.4372</TD><TD>1.43939</TD></TR>
+<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>fc2_1</TD><TD>fc2</TD><TD>10:1:1</TD><TD>5:1:1</TD><TD>2</TD><TD>0.153728</TD><TD>0.076321</TD><TD>0.076864</TD><TD>0.077407</TD></TR>
+<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>load_model_ocm_1</TD><TD>load_model_ocm</TD><TD>1:1:1</TD><TD>1:1:1</TD><TD>1</TD><TD>1.5237</TD><TD>1.5237</TD><TD>1.5237</TD><TD>1.5237</TD></TR>
+<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>max_pool1_1</TD><TD>max_pool1</TD><TD>12:12:32</TD><TD>4:4:4</TD><TD>72</TD><TD>1.18171</TD><TD>0.015875</TD><TD>0.0164126</TD><TD>0.019061</TD></TR>
+<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>max_pool2_1</TD><TD>max_pool2</TD><TD>4:4:64</TD><TD>4:4:4</TD><TD>16</TD><TD>0.26825</TD><TD>0.016264</TD><TD>0.0167656</TD><TD>0.019216</TD></TR>
+<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>softmax_layer_1</TD><TD>softmax_layer</TD><TD>1:1:1</TD><TD>1:1:1</TD><TD>1</TD><TD>0.013987</TD><TD>0.013987</TD><TD>0.013987</TD><TD>0.013987</TD></TR>
 </TABLE>
 <br>
 <h2>Data Transfer: Host and Global Memory</h2>
@@ -119,6 +119,8 @@
 <TH>Total Time (ms)</TH>
 <TH>Average Time (ms)</TH>
 </TR>
+<TR><TD>context0:1</TD><TD>READ</TD><TD>1</TD><TD>1.854857</TD><TD>0.037097</TD><TD>0.04</TD><TD>0.021565</TD><TD>0.021565</TD></TR>
+<TR><TD>context0:1</TD><TD>WRITE</TD><TD>9</TD><TD>2515.262902</TD><TD>50.305258</TD><TD>141.267</TD><TD>0.505474</TD><TD>0.056164</TD></TR>
 </TABLE>
 <br>
 <h2>Data Transfer: Kernels and Global Memory</h2>
@@ -133,6 +135,8 @@
 <TH>Average Size (KB)</TH>
 <TH>Average Time (ns)</TH>
 </TR>
+<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>READ</TD><TD>20209</TD><TD>9.48282</TD><TD>0.0987794</TD><TD>0.064</TD><TD>229.337</TD></TR>
+<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>WRITE</TD><TD>1</TD><TD>0.000293273</TD><TD>3.05493e-06</TD><TD>0.04</TD><TD>129.167</TD></TR>
 </TABLE>
 <br>
 <h2>Top Data Transfer: Kernels and Global Memory</h2>
@@ -150,6 +154,7 @@
 <TH>Transfer Rate (MB/s)</TH>
 <TH>Average Bandwidth Utilization (%)</TH>
 </TR>
+<TR><TD>xilinx:adm-pcie-ku3:2ddr:3.0-0</TD><TD>ALL</TD><TD>20210</TD><TD>63.9988</TD><TD>1.56247</TD><TD>1.29342</TD><TD>4e-05</TD><TD>1.29338</TD><TD>4.74156</TD><TD>0.0493912</TD></TR>
 </TABLE>
 </BODY>
 </HTML>
