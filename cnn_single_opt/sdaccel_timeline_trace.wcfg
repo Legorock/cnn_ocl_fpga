@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="sdaccel_timeline_trace.wdb" id="1">
+         <top_modules>
+            <top_module name="top" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="2" />
+   <wvobject type="group" fp_name="hostGroup">
+      <obj_property name="label">Host</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="group" fp_name="APICallGroup">
+         <obj_property name="label">Open CL API Calls</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+         <wvobject db_ref_id="1" type="other" fp_name="/top/General">
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="ElementShortName">General</obj_property>
+            <obj_property name="ObjectShortName">General</obj_property>
+            <obj_property name="label">General</obj_property>
+            <obj_property name="EnumTransactionColorTable">INACTIVE=blank</obj_property>
+            <obj_property name="CustomSignalColor">#139394</obj_property>
+            <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject db_ref_id="1" type="other" fp_name="/top/Queue_1FAD548">
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="ElementShortName">Queue_1FAD548</obj_property>
+            <obj_property name="ObjectShortName">Queue_1FAD548</obj_property>
+            <obj_property name="label">Queue: 1FAD548</obj_property>
+            <obj_property name="EnumTransactionColorTable">INACTIVE=blank</obj_property>
+            <obj_property name="CustomSignalColor">#139394</obj_property>
+            <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject type="group" fp_name="groupDataTransfer">
+         <obj_property name="label">Data Transfer</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+         <wvobject type="group" fp_name="groupReadBuffer">
+            <obj_property name="label">Read</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="Render_Data">/top/Host_Read_State</obj_property>
+            <obj_property name="EnumTransactionColorTable">IDLE=blank</obj_property>
+            <obj_property name="CustomSignalColor">#2B2B75</obj_property>
+            <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+            <wvobject db_ref_id="1" type="other" fp_name="/top/Host_Read_State">
+               <obj_property name="DisplayName">label</obj_property>
+               <obj_property name="ElementShortName">State</obj_property>
+               <obj_property name="ObjectShortName">State</obj_property>
+               <obj_property name="label">State</obj_property>
+               <obj_property name="EnumTransactionColorTable">IDLE=blank</obj_property>
+               <obj_property name="CustomSignalColor">#2B2B75</obj_property>
+               <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+               <obj_property name="UseCustomSignalColor">true</obj_property>
+            </wvobject>
+            <wvobject db_ref_id="1" type="array" fp_name="/top/Host_Read_Address">
+               <obj_property name="DisplayName">label</obj_property>
+               <obj_property name="ElementShortName">Address</obj_property>
+               <obj_property name="ObjectShortName">Address</obj_property>
+               <obj_property name="label">Address</obj_property>
+               <obj_property name="unexpandable"></obj_property>
+               <obj_property name="CustomSignalColor">#2B2B75</obj_property>
+               <obj_property name="UseCustomSignalColor">true</obj_property>
+               <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+               <obj_property name="EnumTransactionColorTable">XXXXXXXXXX=blank</obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject type="group" fp_name="groupWriteBuffer">
+            <obj_property name="label">Write</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="Render_Data">/top/Host_Write_State</obj_property>
+            <obj_property name="EnumTransactionColorTable">IDLE=blank</obj_property>
+            <obj_property name="CustomSignalColor">#813535</obj_property>
+            <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+            <wvobject db_ref_id="1" type="other" fp_name="/top/Host_Write_State">
+               <obj_property name="DisplayName">label</obj_property>
+               <obj_property name="ElementShortName">State</obj_property>
+               <obj_property name="ObjectShortName">State</obj_property>
+               <obj_property name="label">State</obj_property>
+               <obj_property name="EnumTransactionColorTable">IDLE=blank</obj_property>
+               <obj_property name="CustomSignalColor">#813535</obj_property>
+               <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+               <obj_property name="UseCustomSignalColor">true</obj_property>
+            </wvobject>
+            <wvobject db_ref_id="1" type="array" fp_name="/top/Host_Write_Address">
+               <obj_property name="DisplayName">label</obj_property>
+               <obj_property name="ElementShortName">Address</obj_property>
+               <obj_property name="ObjectShortName">Address</obj_property>
+               <obj_property name="label">Address</obj_property>
+               <obj_property name="unexpandable"></obj_property>
+               <obj_property name="CustomSignalColor">#813535</obj_property>
+               <obj_property name="UseCustomSignalColor">true</obj_property>
+               <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+               <obj_property name="EnumTransactionColorTable">XXXXXXXXXX=blank</obj_property>
+            </wvobject>
+         </wvobject>
+      </wvobject>
+   </wvobject>
+   <wvobject type="divider" fp_name="xilinx:adm-pcie-ku3:2ddr:3.0-0_divider">
+      <obj_property name="label"> </obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="BkColor">#FFFFFF</obj_property>
+   </wvobject>
+   <wvobject type="group" fp_name="xilinx:adm-pcie-ku3:2ddr:3.0-0_group">
+      <obj_property name="label">Device &quot;xilinx:adm-pcie-ku3:2ddr:3.0-0&quot;</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="group" fp_name="xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_group">
+         <obj_property name="label">Binary Container &quot;bin_cnn_hw&quot;</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+         <wvobject type="group" fp_name="group_xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_Kernel_Data_Transfer">
+            <obj_property name="label">Kernel Data Transfer</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject db_ref_id="1" type="other" fp_name="/top/\xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw\_Kernel_Data_Transfer_Read">
+               <obj_property name="DisplayName">label</obj_property>
+               <obj_property name="ElementShortName">.Read</obj_property>
+               <obj_property name="ObjectShortName">Kernel_Data_Transfer.Read</obj_property>
+               <obj_property name="label">Read</obj_property>
+               <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+               <obj_property name="unexpandable"></obj_property>
+               <obj_property name="CustomSignalColor">#2B2B75</obj_property>
+               <obj_property name="UseCustomSignalColor">true</obj_property>
+               <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+               <obj_property name="EnumTransactionColorTable">0=blank</obj_property>
+            </wvobject>
+            <wvobject db_ref_id="1" type="other" fp_name="/top/\xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw\_Kernel_Data_Transfer_Write">
+               <obj_property name="DisplayName">label</obj_property>
+               <obj_property name="ElementShortName">.Write</obj_property>
+               <obj_property name="ObjectShortName">Kernel_Data_Transfer.Write</obj_property>
+               <obj_property name="label">Write</obj_property>
+               <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+               <obj_property name="unexpandable"></obj_property>
+               <obj_property name="CustomSignalColor">#813535</obj_property>
+               <obj_property name="UseCustomSignalColor">true</obj_property>
+               <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+               <obj_property name="EnumTransactionColorTable">0=blank</obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject type="group" fp_name="xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_load_model_ocm_1:1:1_group">
+            <obj_property name="label">Kernel &quot;load_model_ocm&quot; 1:1:1</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject db_ref_id="1" type="other" fp_name="/top/\xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_load_model_ocm_1:1:1_load_model_ocm_1\">
+               <obj_property name="DisplayName">label</obj_property>
+               <obj_property name="ElementShortName">Compute Unit &quot;load_model_ocm_1&quot;</obj_property>
+               <obj_property name="ObjectShortName">Compute Unit &quot;load_model_ocm_1&quot;</obj_property>
+               <obj_property name="label">Compute Unit &quot;load_model_ocm_1&quot;</obj_property>
+               <obj_property name="EnumTransactionColorTable">IDLE=blank</obj_property>
+               <obj_property name="CustomSignalColor">#4DB34D</obj_property>
+               <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+               <obj_property name="UseCustomSignalColor">true</obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject type="group" fp_name="xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_conv1_24:24:1_group">
+            <obj_property name="label">Kernel &quot;conv1&quot; 24:24:1</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject db_ref_id="1" type="other" fp_name="/top/\xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_conv1_24:24:1_conv1_1\">
+               <obj_property name="DisplayName">label</obj_property>
+               <obj_property name="ElementShortName">Compute Unit &quot;conv1_1&quot;</obj_property>
+               <obj_property name="ObjectShortName">Compute Unit &quot;conv1_1&quot;</obj_property>
+               <obj_property name="label">Compute Unit &quot;conv1_1&quot;</obj_property>
+               <obj_property name="EnumTransactionColorTable">IDLE=blank</obj_property>
+               <obj_property name="CustomSignalColor">#4DB34D</obj_property>
+               <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+               <obj_property name="UseCustomSignalColor">true</obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject type="group" fp_name="xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_max_pool1_4:4:4_group">
+            <obj_property name="label">Kernel &quot;max_pool1&quot; 4:4:4</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject db_ref_id="1" type="other" fp_name="/top/\xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_max_pool1_4:4:4_max_pool1_1\">
+               <obj_property name="DisplayName">label</obj_property>
+               <obj_property name="ElementShortName">Compute Unit &quot;max_pool1_1&quot;</obj_property>
+               <obj_property name="ObjectShortName">Compute Unit &quot;max_pool1_1&quot;</obj_property>
+               <obj_property name="label">Compute Unit &quot;max_pool1_1&quot;</obj_property>
+               <obj_property name="EnumTransactionColorTable">IDLE=blank</obj_property>
+               <obj_property name="CustomSignalColor">#4DB34D</obj_property>
+               <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+               <obj_property name="UseCustomSignalColor">true</obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject type="group" fp_name="xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_conv2_8:8:8_group">
+            <obj_property name="label">Kernel &quot;conv2&quot; 8:8:8</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject db_ref_id="1" type="other" fp_name="/top/\xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_conv2_8:8:8_conv2_1\">
+               <obj_property name="DisplayName">label</obj_property>
+               <obj_property name="ElementShortName">Compute Unit &quot;conv2_1&quot;</obj_property>
+               <obj_property name="ObjectShortName">Compute Unit &quot;conv2_1&quot;</obj_property>
+               <obj_property name="label">Compute Unit &quot;conv2_1&quot;</obj_property>
+               <obj_property name="EnumTransactionColorTable">IDLE=blank</obj_property>
+               <obj_property name="CustomSignalColor">#4DB34D</obj_property>
+               <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+               <obj_property name="UseCustomSignalColor">true</obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject type="group" fp_name="xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_max_pool2_4:4:4_group">
+            <obj_property name="label">Kernel &quot;max_pool2&quot; 4:4:4</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject db_ref_id="1" type="other" fp_name="/top/\xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_max_pool2_4:4:4_max_pool2_1\">
+               <obj_property name="DisplayName">label</obj_property>
+               <obj_property name="ElementShortName">Compute Unit &quot;max_pool2_1&quot;</obj_property>
+               <obj_property name="ObjectShortName">Compute Unit &quot;max_pool2_1&quot;</obj_property>
+               <obj_property name="label">Compute Unit &quot;max_pool2_1&quot;</obj_property>
+               <obj_property name="EnumTransactionColorTable">IDLE=blank</obj_property>
+               <obj_property name="CustomSignalColor">#4DB34D</obj_property>
+               <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+               <obj_property name="UseCustomSignalColor">true</obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject type="group" fp_name="xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_fc1_32:1:1_group">
+            <obj_property name="label">Kernel &quot;fc1&quot; 32:1:1</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject db_ref_id="1" type="other" fp_name="/top/\xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_fc1_32:1:1_fc1_1\">
+               <obj_property name="DisplayName">label</obj_property>
+               <obj_property name="ElementShortName">Compute Unit &quot;fc1_1&quot;</obj_property>
+               <obj_property name="ObjectShortName">Compute Unit &quot;fc1_1&quot;</obj_property>
+               <obj_property name="label">Compute Unit &quot;fc1_1&quot;</obj_property>
+               <obj_property name="EnumTransactionColorTable">IDLE=blank</obj_property>
+               <obj_property name="CustomSignalColor">#4DB34D</obj_property>
+               <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+               <obj_property name="UseCustomSignalColor">true</obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject type="group" fp_name="xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_fc2_5:1:1_group">
+            <obj_property name="label">Kernel &quot;fc2&quot; 5:1:1</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject db_ref_id="1" type="other" fp_name="/top/\xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_fc2_5:1:1_fc2_1\">
+               <obj_property name="DisplayName">label</obj_property>
+               <obj_property name="ElementShortName">Compute Unit &quot;fc2_1&quot;</obj_property>
+               <obj_property name="ObjectShortName">Compute Unit &quot;fc2_1&quot;</obj_property>
+               <obj_property name="label">Compute Unit &quot;fc2_1&quot;</obj_property>
+               <obj_property name="EnumTransactionColorTable">IDLE=blank</obj_property>
+               <obj_property name="CustomSignalColor">#4DB34D</obj_property>
+               <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+               <obj_property name="UseCustomSignalColor">true</obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject type="group" fp_name="xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_softmax_layer_1:1:1_group">
+            <obj_property name="label">Kernel &quot;softmax_layer&quot; 1:1:1</obj_property>
+            <obj_property name="DisplayName">label</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject db_ref_id="1" type="other" fp_name="/top/\xilinx:adm-pcie-ku3:2ddr:3.0-0_bin_cnn_hw_softmax_layer_1:1:1_softmax_layer_1\">
+               <obj_property name="DisplayName">label</obj_property>
+               <obj_property name="ElementShortName">Compute Unit &quot;softmax_layer_1&quot;</obj_property>
+               <obj_property name="ObjectShortName">Compute Unit &quot;softmax_layer_1&quot;</obj_property>
+               <obj_property name="label">Compute Unit &quot;softmax_layer_1&quot;</obj_property>
+               <obj_property name="EnumTransactionColorTable">IDLE=blank</obj_property>
+               <obj_property name="CustomSignalColor">#4DB34D</obj_property>
+               <obj_property name="WaveformStyle">STYLE_ENUM_TRANSACTION</obj_property>
+               <obj_property name="UseCustomSignalColor">true</obj_property>
+            </wvobject>
+         </wvobject>
+      </wvobject>
+   </wvobject>
+</wave_config>

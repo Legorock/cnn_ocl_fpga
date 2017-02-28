@@ -6,6 +6,7 @@
 #include "helper.h"
 #include "Measure.h"
 
+#include "cnn_description.h"
 
 typedef DataBlob<float> Data;
 typedef clDataBlob<float> clData;
@@ -68,12 +69,20 @@ oclCNN::oclCNN(std::map<std::string, DataBlob<float>> & model, xcl_world &  worl
     auto t_load_model = launch_kernel(world, load_model, global, loadm_wg.data());
     std::cout << "CNN Model Parameters are Relocated to On-Chip Constant Memory!\n";
 
-    conv1_out = emptyClDataBlob<float>(world, {24, 24, 32}, CL_MEM_READ_WRITE);
-    pool1_out = emptyClDataBlob<float>(world, {12, 12, 32}, CL_MEM_READ_WRITE);
-    conv2_out = emptyClDataBlob<float>(world, {8, 8, 64}, CL_MEM_READ_WRITE);
-    pool2_out = emptyClDataBlob<float>(world, {4, 4, 64}, CL_MEM_READ_WRITE);
-    dens1_out = emptyClDataBlob<float>(world, {256}, CL_MEM_READ_WRITE);
-    class_out = emptyClDataBlob<float>(world, {10}, CL_MEM_READ_WRITE);
+//    conv1_out = emptyClDataBlob<float>(world, {24, 24, 32}, CL_MEM_READ_WRITE);
+//    pool1_out = emptyClDataBlob<float>(world, {12, 12, 32}, CL_MEM_READ_WRITE);
+//    conv2_out = emptyClDataBlob<float>(world, {8, 8, 64}, CL_MEM_READ_WRITE);
+//    pool2_out = emptyClDataBlob<float>(world, {4, 4, 64}, CL_MEM_READ_WRITE);
+//    dens1_out = emptyClDataBlob<float>(world, {256}, CL_MEM_READ_WRITE);
+//    class_out = emptyClDataBlob<float>(world, {10}, CL_MEM_READ_WRITE);
+//    softm_out = emptyClDataBlob<float>(world, {10}, CL_MEM_WRITE_ONLY);
+
+    conv1_out = emptyClDataBlob<float>(world, {OWIDTH1, OHEIGHT1, FEAT1_OUT}, CL_MEM_READ_WRITE);
+    pool1_out = emptyClDataBlob<float>(world, {OWIDTH1/2, OHEIGHT1/2, FEAT1_OUT}, CL_MEM_READ_WRITE);
+    conv2_out = emptyClDataBlob<float>(world, {OWIDTH2, OWIDTH2, FEAT2_OUT}, CL_MEM_READ_WRITE);
+    pool2_out = emptyClDataBlob<float>(world, {OWIDTH2/2, OHEIGHT2/2, FEAT2_OUT}, CL_MEM_READ_WRITE);
+    dens1_out = emptyClDataBlob<float>(world, {ONEURON1}, CL_MEM_READ_WRITE);
+    class_out = emptyClDataBlob<float>(world, {ONEURON2}, CL_MEM_READ_WRITE);
     softm_out = emptyClDataBlob<float>(world, {10}, CL_MEM_WRITE_ONLY);
     std::cout << "Intermediate data created!\n";
 
@@ -110,22 +119,28 @@ DataBlob<float> oclCNN::runImg(DataBlob<float> & img)
     clSetKernelArg(conv1, 0, sizeof(cl_mem), &cl_img.buffer); 
     StopWatch<> timer;
 
-    global[0] = 24; global[1] = 24; global[2] = 32;
+    //global[0] = 24; global[1] = 24; global[2] = 32;
+    global[0] = OWIDTH1; global[1] = OHEIGHT1; global[2] = FEAT1_OUT;
     auto t_conv1 = launch_kernel_async(m_world, conv1, global, conv1_wg.data());
     
-    global[0] = 12; global[1] = 12; global[2] = 32;
+    //global[0] = 12; global[1] = 12; global[2] = 32;
+    global[0] = OWIDTH1/2; global[1] = OHEIGHT1/2; global[2] = FEAT1_OUT;
     auto t_pool1 = launch_kernel_async(m_world, mpool1, global, mpool1_wg.data());
 
-    global[0] = 8; global[1] = 8; global[2] = 64;
+    //global[0] = 8; global[1] = 8; global[2] = 64;
+    global[0] = OWIDTH2; global[1] = OHEIGHT2; global[2] = FEAT2_OUT;
     auto t_conv2 = launch_kernel_async(m_world, conv2, global, conv2_wg.data());
 
-    global[0] = 4; global[1] = 4; global[2] = 64;
+    //global[0] = 4; global[1] = 4; global[2] = 64;
+    global[0] = OWIDTH2/2; global[1] = OHEIGHT2/2; global[2] = FEAT2_OUT;
     auto t_pool2 = launch_kernel_async(m_world, mpool2, global, mpool2_wg.data());
 
-    global[0] = 256; global[1] = 1; global[2] = 1;
+    //global[0] = 256; global[1] = 1; global[2] = 1;
+    global[0] = ONEURON1; global[1] = 1; global[2] = 1;
     auto t_fc1 = launch_kernel_async(m_world, fc1, global, fc1_wg.data());
 
-    global[0] = 10; global[1] = 1; global[2] = 1;
+    //global[0] = 10; global[1] = 1; global[2] = 1;
+    global[0] = ONEURON2; global[1] = 1; global[2] = 1;
     auto t_fc2 = launch_kernel_async(m_world, fc2, global, fc2_wg.data());
     
     global[0] = 1; global[1] = 1; global[2] = 1;

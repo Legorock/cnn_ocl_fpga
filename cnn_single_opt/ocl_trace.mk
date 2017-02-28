@@ -7,5 +7,5 @@ export SDACCEL_DEVICE_PROFILE=true
 unset SDACCEL_TIMELINE_REPORT
 unset SDACCEL_DEVICE_PROFILE
 
-sda2protobuf sdaccell_profile_summary.csv
+sda2protobuf sdaccel_profile_summary.csv
 sda2wdb sdaccel_timeline_trace.csv
