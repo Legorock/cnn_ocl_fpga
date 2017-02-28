@@ -199,7 +199,8 @@ void conv1(__global DATA_TYPE * in)
 // 12x12x32 --> 8x8x64
 #define CONV2_WG_X  8
 #define CONV2_WG_Y  8
-#define CONV2_WG_Z  1
+#define CONV2_WG_Z  8
+//#define CONV2_WG_Z  1
 #define TILE2_X (CONV2_WG_X+MASK2_SIZE-1)
 #define TILE2_Y (CONV2_WG_Y+MASK2_SIZE-1)
 #define TILE2_Z MASK2_DEPTH
@@ -208,57 +209,44 @@ __kernel __attribute__((reqd_work_group_size(CONV2_WG_X, CONV2_WG_Y, CONV2_WG_Z)
 void conv2()
 {
     __global DATA_TYPE * in = POOL1_OUT;
-    //__local DATA_TYPE tile[TILE2_X * TILE2_Y];
-    __local DATA_TYPE tile[TILE2_X * TILE2_Y * TILE2_Z];
 
-    __local DATA_TYPE w_cache[MASK2_SIZE * MASK2_SIZE * MASK2_DEPTH * CONV2_WG_Z];
+    __local DATA_TYPE tile[TILE2_X * TILE2_Y * TILE2_Z];
+//        __attribute__((xcl_array_partition(block,4,1)));
+    __local DATA_TYPE w_cache[MASK2_SIZE * MASK2_SIZE * MASK2_DEPTH * CONV2_WG_Z]
+        __attribute__((xcl_array_partition(cyclic,5,1)));
     __private DATA_TYPE out_cache[MASK2_SIZE * MASK2_SIZE];
 
-    size_t w = get_global_id(0);
-    size_t h = get_global_id(1);
-    size_t d = get_global_id(2);
+    uchar w = get_global_id(0);
+    uchar h = get_global_id(1);
+    uchar d = get_global_id(2);
+    uchar g_id = get_group_id(2);
+    uchar l_id = get_local_id(2);
 
-    ushort w_idx = get_group_id(2) * MASK2_SIZE * MASK2_SIZE * MASK2_DEPTH * CONV2_WG_Z;
+    ushort w_idx = g_id * MASK2_SIZE * MASK2_SIZE * MASK2_DEPTH * CONV2_WG_Z;
     async_work_group_copy(&tile[0], &in[0], TILE2_X * TILE2_Y * TILE2_Z, 0);
     async_work_group_copy(&w_cache[0], &wc2[w_idx], MASK2_SIZE * MASK2_SIZE * MASK2_DEPTH * CONV2_WG_Z, 0);
 
+    __attribute__((opencl_unroll_hint))
     for(ushort i = 0; i < MASK2_SIZE * MASK2_SIZE; ++i)
         out_cache[i] = (DATA_TYPE)0;
 
-//    event_t event;
-//    size_t in_idx = get_group_id(0) * CONV2_WG_X + get_group_id(1) * CONV2_WG_Y * IWIDTH2;
-//    size_t in_idx = 0;
-    
     size_t out_idx = w + OWIDTH2 * (h + OHEIGHT2 * d);
-
     DATA_TYPE c = (DATA_TYPE)0;
-
+    
+    __attribute__((xcl_pipeline_loop))
     for(size_t cd = 0; cd < MASK2_DEPTH; ++cd)
     {
-//        for(size_t i = 0; i < TILE2_Y; ++i)
-//            event = async_work_group_copy(&tile[i * TILE2_X], &in[in_idx + i * IWIDTH2], TILE2_X, event);
-////            async_work_group_copy(&tile[i * TILE2_X], &in[in_idx + i * IWIDTH2], TILE2_X, 0);
-//        in_idx += IHEIGHT2 * IWIDTH2;
-//
-//        wait_group_events(1, &event);
-//        barrier(CLK_LOCAL_MEM_FENCE);
-
-//        event = async_work_group_copy(&tile[0], &in[in_idx], TILE2_X * TILE2_Y, 0);
-//        in_idx += IHEIGHT2 * IWIDTH2;
-//       wait_group_events(1, &event);
-        //barrier(CLK_LOCAL_MEM_FENCE);
-
+//        __attribute__((xcl_pipeline_loop))
+        __attribute__((opencl_unroll_hint))
         for(size_t ch = 0; ch < MASK2_SIZE; ++ch)
         {
+//            __attribute__((xcl_pipeline_loop))
+            __attribute__((opencl_unroll_hint))
             for(size_t cw = 0; cw < MASK2_SIZE; ++cw)
             {
-                //c += tile[getIdx3D(cd, ch + h, cw + w, TILE2_X, TILE2_Y)]
-                //* wc2[cw + (ch + cd * MASK2_SIZE) * MASK2_SIZE + d * MASK2_SIZE * MASK2_SIZE * MASK2_DEPTH];
-                
-                //size_t idx = getIdx3D(cd, ch, cw, MASK2_SIZE, MASK2_SIZE);
                 ushort idx = getIdx2D(ch, cw, MASK2_SIZE);
                 out_cache[idx] += tile[getIdx3D(cd, ch+h, cw+w, TILE2_X, TILE2_Y)]
-                 *  w_cache[idx + (cd + get_local_id(2) * MASK2_DEPTH) * MASK2_SIZE * MASK2_SIZE];
+                 *  w_cache[idx + (cd + l_id * MASK2_DEPTH) * MASK2_SIZE * MASK2_SIZE];
             }
         }
     }

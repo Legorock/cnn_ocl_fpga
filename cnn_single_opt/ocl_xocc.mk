@@ -25,3 +25,7 @@ echo "$SDA_FLOW build flow is choosen for ${KERNEL_SRCS}, output binary will be 
 xocc --xdevice ${XDEVICE} -t ${SDA_FLOW} -o ${XCLBIN_NAME}.xclbin --report estimate -s -j 8 -O3 ${KERNEL_SRCS}
 #xocc --xdevice ${XDEVICE} -t ${SDA_FLOW} -o ${XCLBIN_NAME}.xclbin ${KERNEL_CUs} --report estimate  -j 8 -O3 ${KERNEL_SRCS}
 
+if [ "$2" != "s" ]; then
+	echo "remove all llvm files!"
+	rm *.ll
+fi

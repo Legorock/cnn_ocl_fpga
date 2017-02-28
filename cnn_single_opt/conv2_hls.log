@@ -1,0 +1,231 @@
+================================================================
+  Vivado(TM) HLS - High-Level Synthesis from C, C++ and SystemC
+  Version 2016.3
+  Build 1660538 on Tue Sep 13 18:09:30 MDT 2016
+  Copyright (C) 1986-2016 Xilinx, Inc. All Rights Reserved.
+================================================================
+INFO: [HLS 200-10] Running '/opt/Xilinx/SDAccel/2016.2/Vivado_HLS/bin/unwrapped/lnx64.o/vivado_hls'
+INFO: [HLS 200-10] For user 'ahmet' on host 'raffaello.necst' (Linux_x86_64 version 2.6.32-642.13.1.el6.x86_64) on Tue Feb 28 08:07:45 CET 2017
+INFO: [HLS 200-10] On os "CentOS release 6.8 (Final)"
+INFO: [HLS 200-10] In directory '/home/ahmet/Public/workspace/cnn/cnn_single_opt/_xocc_krnls_cnn_bin_cnn_hw.dir/impl/kernels/conv2'
+INFO: [HLS 200-10] Creating and opening project '/home/ahmet/Public/workspace/cnn/cnn_single_opt/_xocc_krnls_cnn_bin_cnn_hw.dir/impl/kernels/conv2/conv2'.
+INFO: [HLS 200-10] Adding design file '/home/ahmet/Public/workspace/cnn/cnn_single_opt/krnls_cnn.cl' to the project
+INFO: [HLS 200-10] Creating and opening solution '/home/ahmet/Public/workspace/cnn/cnn_single_opt/_xocc_krnls_cnn_bin_cnn_hw.dir/impl/kernels/conv2/conv2/solution_OCL_REGION_0'.
+INFO: [HLS 200-10] Setting target device to 'xcku060-ffva1156-2-e'
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 4ns.
+INFO: [SYN 201-201] Setting up clock 'default' with an uncertainty of 1.08ns.
+INFO: [XFORM 203-1171] Pipeline the innermost loop with trip count more than 64 or its parent loop when its trip count is less than or equal 64.
+INFO: [SCHED 204-61] Option 'relax_ii_for_timing' is enabled, will increase II to preserve clock frequency constraints.
+INFO: [HLS 200-10] Analyzing design file '/home/ahmet/Public/workspace/cnn/cnn_single_opt/krnls_cnn.cl' ... 
+INFO: [HLS 200-111] Finished Checking Pragmas Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 415.316 ; gain = 16.715 ; free physical = 27743 ; free virtual = 46147
+INFO: [HLS 200-111] Finished Linking Time (s): cpu = 00:00:01 ; elapsed = 00:00:02 . Memory (MB): peak = 415.316 ; gain = 16.715 ; free physical = 27761 ; free virtual = 46166
+INFO: [HLS 200-10] Starting code transformations ...
+INFO: [XFORM 203-603] Inlining function '__xlnx_cl__Z8getIdx2Dyyy' into 'conv2'.
+INFO: [XFORM 203-603] Inlining function '__xlnx_cl__Z8getIdx3Dyyyyy' into 'conv2'.
+INFO: [XFORM 203-603] Inlining function '__xlnx_cl__Z4reluf' into 'conv2'.
+INFO: [HLS 200-111] Finished Standard Transforms Time (s): cpu = 00:00:04 ; elapsed = 00:00:04 . Memory (MB): peak = 500.883 ; gain = 102.281 ; free physical = 27651 ; free virtual = 46063
+INFO: [HLS 200-10] Checking synthesizability ...
+INFO: [HLS 200-111] Finished Checking Synthesizability Time (s): cpu = 00:00:08 ; elapsed = 00:00:08 . Memory (MB): peak = 500.883 ; gain = 102.281 ; free physical = 27452 ; free virtual = 45903
+INFO: [XFORM 203-510] Pipelining loop 'XCL_WG_DIM_X' in function 'conv2' automatically.
+INFO: [XFORM 203-510] Pipelining loop 'Loop-5.1.2.1.1' (/home/ahmet/Public/workspace/cnn/cnn_single_opt/krnls_cnn.cl:253) in function 'conv2' automatically.
+INFO: [XFORM 203-510] Pipelining loop 'Loop-5.1.1' (/home/ahmet/Public/workspace/cnn/cnn_single_opt/krnls_cnn.cl:225) in function 'conv2' automatically.
+INFO: [XFORM 203-501] Unrolling loop with tag "xcl_region_0"(/home/ahmet/Public/workspace/cnn/cnn_single_opt/krnls_cnn.cl:267) in function 'conv2' completely.
+INFO: [XFORM 203-102] Partitioning array '.cast.i.1' automatically.
+INFO: [XFORM 203-102] Partitioning array '.cast.i.2' automatically.
+INFO: [XFORM 203-102] Partitioning array '.cast.i.3' automatically.
+INFO: [XFORM 203-102] Partitioning array '.cast.i.4' automatically.
+INFO: [XFORM 203-102] Partitioning array '.cast.i.5' automatically.
+INFO: [XFORM 203-102] Partitioning array '.cast.i.6' automatically.
+INFO: [XFORM 203-102] Partitioning array '.cast.i.7' automatically.
+INFO: [XFORM 203-101] Partitioning array 'tile' in dimension 1 with a cyclic factor 2.
+INFO: [XFORM 203-11] Balancing expressions in function 'conv2' (/home/ahmet/Public/workspace/cnn/cnn_single_opt/krnls_cnn.cl:17:40)...4 expression(s) balanced.
+INFO: [HLS 200-111] Finished Pre-synthesis Time (s): cpu = 00:00:13 ; elapsed = 00:00:13 . Memory (MB): peak = 587.105 ; gain = 188.504 ; free physical = 27168 ; free virtual = 45618
+INFO: [XFORM 203-541] Flattening a loop nest 'XCL_WG_DIM_Y' in function 'conv2'.
+INFO: [XFORM 203-541] Flattening a loop nest 'Loop-4.1.2.1' (/home/ahmet/Public/workspace/cnn/cnn_single_opt/krnls_cnn.cl:251:26) in function 'conv2'.
+INFO: [XFORM 203-541] Flattening a loop nest 'Loop-4.1.2' (/home/ahmet/Public/workspace/cnn/cnn_single_opt/krnls_cnn.cl:236:22) in function 'conv2'.
+WARNING: [XFORM 203-542] Cannot flatten a loop nest 'XCL_WG_DIM_X' in function 'conv2' : 
+WARNING: [XFORM 203-542] more than one sub loop.
+INFO: [XFORM 203-541] Flattening a loop nest 'XCL_WG_DIM_Y' in function 'conv2'.
+INFO: [HLS 200-111] Finished Architecture Synthesis Time (s): cpu = 00:00:15 ; elapsed = 00:00:15 . Memory (MB): peak = 587.105 ; gain = 188.504 ; free physical = 26904 ; free virtual = 45356
+INFO: [HLS 200-10] Starting hardware synthesis ...
+INFO: [HLS 200-10] Synthesizing 'conv2' ...
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Implementing module 'conv2' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [SCHED 204-61] Pipelining loop 'XCL_WG_DIM_Y_XCL_WG_DIM_X'.
+INFO: [SCHED 204-61] Pipelining result: Target II: 1, Final II: 1, Depth: 3.
+INFO: [SCHED 204-61] Pipelining loop 'memcpy.conv2.tile.pool1_out'.
+INFO: [SCHED 204-61] Pipelining result: Target II: 1, Final II: 1, Depth: 137.
+INFO: [SCHED 204-61] Pipelining loop 'memcpy.conv2.w_cache.wc2'.
+INFO: [SCHED 204-61] Pipelining result: Target II: 1, Final II: 1, Depth: 137.
+INFO: [SCHED 204-61] Pipelining loop 'XCL_WG_DIM_Y_XCL_WG_DIM_X.1'.
+INFO: [SCHED 204-61] Pipelining result: Target II: 1, Final II: 1, Depth: 2.
+INFO: [SCHED 204-61] Pipelining loop 'XCL_WG_DIM_Y_XCL_WG_DIM_X.2'.
+INFO: [SCHED 204-61] Pipelining result: Target II: 1, Final II: 1, Depth: 23.
+WARNING: [SCHED 204-21] Estimated clock period (3.04ns) exceeds the target (target clock period: 4ns, clock uncertainty: 1.08ns, effective delay budget: 2.92ns).
+WARNING: [SCHED 204-21] The critical path consists of the following:
+	'mul' operation ('w_idx_0_reg2mem_0_i_i', /home/ahmet/Public/workspace/cnn/cnn_single_opt/krnls_cnn.cl:221) (3.04 ns)
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111]  Elapsed time: 15.72 seconds; current allocated memory: 0.202 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111]  Elapsed time: 2.43 seconds; current allocated memory: 0.202 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'conv2' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/gmem' to 'm_axi'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/conv2_out' to 'm_axi'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/pool1_out' to 'm_axi'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/bc2' to 'm_axi'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/wc2' to 'm_axi'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/group_id_x' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/group_id_y' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/group_id_z' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/global_offset_x' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/global_offset_y' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/global_offset_z' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/p_xcl_gv_conv2_out' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/p_xcl_gv_pool1_out' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/p_xcl_gv_bc2' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'conv2/p_xcl_gv_wc2' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on function 'conv2' to 's_axilite & ap_ctrl_hs'.
+INFO: [RTGEN 206-100] Bundling port 'return', 'group_id_x', 'group_id_y', 'group_id_z', 'global_offset_x', 'global_offset_y', 'global_offset_z', 'p_xcl_gv_conv2_out', 'p_xcl_gv_pool1_out', 'p_xcl_gv_bc2' and 'p_xcl_gv_wc2' to AXI-Lite port control.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_AWVALID' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_AWREADY' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_AWADDR' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_AWID' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_AWLEN' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_AWSIZE' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_AWBURST' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_AWLOCK' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_AWCACHE' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_AWPROT' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_AWQOS' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_AWREGION' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_AWUSER' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_WVALID' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_WREADY' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_WDATA' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_WSTRB' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_WLAST' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_WID' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_WUSER' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_ARVALID' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_ARREADY' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_ARADDR' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_ARID' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_ARLEN' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_ARSIZE' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_ARBURST' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_ARLOCK' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_ARCACHE' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_ARPROT' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_ARQOS' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_ARREGION' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_ARUSER' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_RVALID' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_RREADY' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_RDATA' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_RLAST' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_RID' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_RUSER' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_RRESP' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_BVALID' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_BREADY' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_BRESP' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_BID' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'conv2/m_axi_gmem_BUSER' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+INFO: [RTGEN 206-100] Generating core module 'conv2_fadd_32ns_32ns_32_10_full_dsp': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'conv2_fcmp_32ns_32ns_1_2': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'conv2_fmul_32ns_32ns_32_6_max_dsp': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'conv2_mac_muladd_6ns_6ns_5ns_10_3': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'conv2_mul_7ns_6ns_12_4': 1 instance(s).
+INFO: [RTGEN 206-100] Generating core module 'conv2_mul_mul_11ns_16s_16_3': 1 instance(s).
+INFO: [RTGEN 206-100] Finished creating RTL model for 'conv2'.
+INFO: [HLS 200-111]  Elapsed time: 2.06 seconds; current allocated memory: 0.202 MB.
+INFO: [RTMG 210-282] Generating pipelined core: 'conv2_mul_7ns_6ns_12_4_MulnS_0'
+INFO: [RTMG 210-278] Implementing memory 'conv2_tile_ram' using block RAMs with power-on initialization.
+INFO: [RTMG 210-278] Implementing memory 'conv2_w_cache_ram' using block RAMs with power-on initialization.
+INFO: [RTMG 210-278] Implementing memory 'conv2_w_0_reg2mem_priv_i_i_ram' using block RAMs.
+INFO: [RTMG 210-278] Implementing memory 'conv2_out_cache_priv_i_i_ram' using block RAMs.
+INFO: [HLS 200-111] Finished generating all RTL models Time (s): cpu = 00:00:22 ; elapsed = 00:00:23 . Memory (MB): peak = 587.105 ; gain = 188.504 ; free physical = 26802 ; free virtual = 45394
+INFO: [SYSC 207-301] Generating SystemC RTL for conv2.
+INFO: [VHDL 208-304] Generating VHDL RTL for conv2.
+INFO: [VLOG 209-307] Generating Verilog RTL for conv2.
+INFO: [IMPL 213-8] Exporting RTL as an IP in IP-XACT.
+
+WARNING: Unable to find common Xilinx tools. Automatic updates and 
+         license management will be disabled.
+
+
+****** Vivado v2016.3_sda (64-bit)
+  **** SW Build 1660141 on Tue Sep 13 12:58:45 MDT 2016
+  **** IP Build 1625021 on Wed Aug 10 18:44:13 MDT 2016
+    ** Copyright 1986-2016 Xilinx, Inc. All Rights Reserved.
+
+source run_ippack.tcl -notrace
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository '/opt/Xilinx/SDAccel/2016.2/Vivado/data/ip'.
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'conv2_ap_fcmp_0_no_dsp_32'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'conv2_ap_fcmp_0_no_dsp_32'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'conv2_ap_fadd_8_full_dsp_32'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'conv2_ap_fadd_8_full_dsp_32'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'conv2_ap_fmul_4_max_dsp_32'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'conv2_ap_fmul_4_max_dsp_32'...
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository '/opt/Xilinx/SDAccel/2016.2/Vivado/data/ip'.
+WARNING: [Vivado 12-4404] Packaging IP from Vivado to be used with external tools is a beta feature in the current release. The cpu emulation flow is not enabled when using a packaged XO file with SDAccel.
+INFO: [Common 17-206] Exiting Vivado at Tue Feb 28 08:08:27 2017...
+Vivado HLS completed successfully
+INFO: [HLS 200-112] Total elapsed time: 63.55 seconds; peak allocated memory: 0.202 MB.
