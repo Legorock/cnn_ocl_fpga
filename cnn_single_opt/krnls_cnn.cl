@@ -199,8 +199,8 @@ void conv1(__global DATA_TYPE * in)
 // 12x12x32 --> 8x8x64
 #define CONV2_WG_X  8
 #define CONV2_WG_Y  8
-#define CONV2_WG_Z  8
-//#define CONV2_WG_Z  1
+//#define CONV2_WG_Z  8
+#define CONV2_WG_Z  16
 #define TILE2_X (CONV2_WG_X+MASK2_SIZE-1)
 #define TILE2_Y (CONV2_WG_Y+MASK2_SIZE-1)
 #define TILE2_Z MASK2_DEPTH
@@ -211,53 +211,66 @@ void conv2()
     __global DATA_TYPE * in = POOL1_OUT;
 
     __local DATA_TYPE tile[TILE2_X * TILE2_Y * TILE2_Z];
-//        __attribute__((xcl_array_partition(block,4,1)));
     __local DATA_TYPE w_cache[MASK2_SIZE * MASK2_SIZE * MASK2_DEPTH * CONV2_WG_Z]
         __attribute__((xcl_array_partition(cyclic,5,1)));
-    __private DATA_TYPE out_cache[MASK2_SIZE * MASK2_SIZE];
+    __local DATA_TYPE b_cache[CONV2_WG_Z];
+ //   __local DATA_TYPE out_cache[CONV2_WG_X * CONV2_WG_Y * CONV2_WG_Z];
 
+    __private DATA_TYPE acc_cache[MASK2_SIZE * MASK2_SIZE];
     uchar w = get_global_id(0);
     uchar h = get_global_id(1);
     uchar d = get_global_id(2);
     uchar g_id = get_group_id(2);
     uchar l_id = get_local_id(2);
 
+    size_t out_idx = 0;
+    __attribute__((xcl_pipeline_workitems))
+    {
     ushort w_idx = g_id * MASK2_SIZE * MASK2_SIZE * MASK2_DEPTH * CONV2_WG_Z;
+    ushort b_idx = g_id * CONV2_WG_Z;
+    
     async_work_group_copy(&tile[0], &in[0], TILE2_X * TILE2_Y * TILE2_Z, 0);
     async_work_group_copy(&w_cache[0], &wc2[w_idx], MASK2_SIZE * MASK2_SIZE * MASK2_DEPTH * CONV2_WG_Z, 0);
+    async_work_group_copy(&b_cache[0], &bc2[b_idx], CONV2_WG_Z, 0);
 
     __attribute__((opencl_unroll_hint))
     for(ushort i = 0; i < MASK2_SIZE * MASK2_SIZE; ++i)
-        out_cache[i] = (DATA_TYPE)0;
+        acc_cache[i] = (DATA_TYPE)0;
 
-    size_t out_idx = w + OWIDTH2 * (h + OHEIGHT2 * d);
+    out_idx = w + OWIDTH2 * (h + OHEIGHT2 * d);
+    }
+
     DATA_TYPE c = (DATA_TYPE)0;
-    
     __attribute__((xcl_pipeline_loop))
     for(size_t cd = 0; cd < MASK2_DEPTH; ++cd)
     {
-//        __attribute__((xcl_pipeline_loop))
         __attribute__((opencl_unroll_hint))
         for(size_t ch = 0; ch < MASK2_SIZE; ++ch)
         {
-//            __attribute__((xcl_pipeline_loop))
             __attribute__((opencl_unroll_hint))
             for(size_t cw = 0; cw < MASK2_SIZE; ++cw)
             {
                 ushort idx = getIdx2D(ch, cw, MASK2_SIZE);
-                out_cache[idx] += tile[getIdx3D(cd, ch+h, cw+w, TILE2_X, TILE2_Y)]
+                acc_cache[idx] += tile[getIdx3D(cd, ch+h, cw+w, TILE2_X, TILE2_Y)]
                  *  w_cache[idx + (cd + l_id * MASK2_DEPTH) * MASK2_SIZE * MASK2_SIZE];
             }
         }
     }
 
+    __attribute__((xcl_pipeline_workitems))
+    {
     __attribute__((opencl_unroll_hint))
     for(ushort i = 0; i < MASK2_SIZE * MASK2_SIZE; ++i)
     {
-        c += out_cache[i];
+        c += acc_cache[i];
     }
 
-    CONV2_OUT[out_idx] = relu(c + bc2[d]);
+    //CONV2_OUT[out_idx] = relu(c + bc2[d]);
+    CONV2_OUT[out_idx] = relu(c + b_cache[l_id]);
+    }
+//    out_cache[getIdx3D(l_id, get_local_id(1), get_local_id(0), CONV2_WG_X, CONV2_WG_Y)] = relu(c + b_cache[l_id]);
+//    barrier(CLK_LOCAL_MEM_FENCE);
+//    async_work_group_copy(&CONV2
     return;
 }
 
