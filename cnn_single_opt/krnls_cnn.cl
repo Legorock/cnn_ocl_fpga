@@ -277,21 +277,43 @@ void conv2()
 // Fully connected layer
 // kernel launch grid based on
 // number of output neuron
-#define FC1_WG_NUM 8   // Number of work-groups is 8
+#define FC1_WG_NUM 4   // Number of work-groups is 2
+#define ACC_CACHE_SIZE (INEURON1 / 64)
 __kernel __attribute__((reqd_work_group_size((ONEURON1/FC1_WG_NUM), 1, 1)))
 void fc1()
 {
     __global DATA_TYPE * in = POOL2_OUT;
     __global DATA_TYPE * out = FC1_OUT;
 
+    __local DATA_TYPE in_cache[P2_OUT];
+    __private DATA_TYPE acc_cache[ACC_CACHE_SIZE];
+
+    __attribute__((xcl_pipeline_workitems))
+    {
+        __attribute__((opencl_unroll_hint))
+        for(ushort i = 0; i < ACC_CACHE_SIZE; ++i)
+            acc_cache[i] = (DATA_TYPE)0;
+    }
+
+    async_work_group_copy(&in_cache[0], &in[0], P2_OUT, 0);
+
+    //DATA_TYPE n = 0;
     size_t neuron = get_global_id(0);
-    DATA_TYPE n = 0;
     __attribute__((xcl_pipeline_loop))
     for(size_t c = 0; c < INEURON1; ++c)
     {
-        n += in[c] * wd1[neuron * INEURON1 + c];
+        //n += in[c] * wd1[neuron * INEURON1 + c];
+        acc_cache[c % ACC_CACHE_SIZE] += in_cache[c] * wd1[neuron * INEURON1 + c];
     }
-    out[neuron] = relu(n + bd1[neuron]);
+
+    __attribute__((xcl_pipeline_workitems))
+    {
+        DATA_TYPE n = 0;
+        __attribute__((opencl_unroll_hint))
+        for(size_t i = 0; i < ACC_CACHE_SIZE; ++i)
+            n += acc_cache[i];
+        out[neuron] = relu(n + bd1[neuron]);
+    }
     return;
 }
 

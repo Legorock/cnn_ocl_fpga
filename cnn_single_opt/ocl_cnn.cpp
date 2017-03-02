@@ -69,14 +69,6 @@ oclCNN::oclCNN(std::map<std::string, DataBlob<float>> & model, xcl_world &  worl
     auto t_load_model = launch_kernel(world, load_model, global, loadm_wg.data());
     std::cout << "CNN Model Parameters are Relocated to On-Chip Constant Memory!\n";
 
-//    conv1_out = emptyClDataBlob<float>(world, {24, 24, 32}, CL_MEM_READ_WRITE);
-//    pool1_out = emptyClDataBlob<float>(world, {12, 12, 32}, CL_MEM_READ_WRITE);
-//    conv2_out = emptyClDataBlob<float>(world, {8, 8, 64}, CL_MEM_READ_WRITE);
-//    pool2_out = emptyClDataBlob<float>(world, {4, 4, 64}, CL_MEM_READ_WRITE);
-//    dens1_out = emptyClDataBlob<float>(world, {256}, CL_MEM_READ_WRITE);
-//    class_out = emptyClDataBlob<float>(world, {10}, CL_MEM_READ_WRITE);
-//    softm_out = emptyClDataBlob<float>(world, {10}, CL_MEM_WRITE_ONLY);
-
     conv1_out = emptyClDataBlob<float>(world, {OWIDTH1, OHEIGHT1, FEAT1_OUT}, CL_MEM_READ_WRITE);
     pool1_out = emptyClDataBlob<float>(world, {OWIDTH1/2, OHEIGHT1/2, FEAT1_OUT}, CL_MEM_READ_WRITE);
     conv2_out = emptyClDataBlob<float>(world, {OWIDTH2, OWIDTH2, FEAT2_OUT}, CL_MEM_READ_WRITE);
@@ -112,34 +104,26 @@ oclCNN::~oclCNN()
 
 DataBlob<float> oclCNN::runImg(DataBlob<float> & img)
 {
-//    return {{0,0,0,0,0,0,0,1.0,0,0}, {10}};
-
     size_t global[3];
     auto cl_img = data_host_to_device(m_world, CL_MEM_READ_ONLY, img);
     clSetKernelArg(conv1, 0, sizeof(cl_mem), &cl_img.buffer); 
     StopWatch<> timer;
 
-    //global[0] = 24; global[1] = 24; global[2] = 32;
     global[0] = OWIDTH1; global[1] = OHEIGHT1; global[2] = FEAT1_OUT;
     auto t_conv1 = launch_kernel_async(m_world, conv1, global, conv1_wg.data());
     
-    //global[0] = 12; global[1] = 12; global[2] = 32;
     global[0] = OWIDTH1/2; global[1] = OHEIGHT1/2; global[2] = FEAT1_OUT;
     auto t_pool1 = launch_kernel_async(m_world, mpool1, global, mpool1_wg.data());
 
-    //global[0] = 8; global[1] = 8; global[2] = 64;
     global[0] = OWIDTH2; global[1] = OHEIGHT2; global[2] = FEAT2_OUT;
     auto t_conv2 = launch_kernel_async(m_world, conv2, global, conv2_wg.data());
 
-    //global[0] = 4; global[1] = 4; global[2] = 64;
     global[0] = OWIDTH2/2; global[1] = OHEIGHT2/2; global[2] = FEAT2_OUT;
     auto t_pool2 = launch_kernel_async(m_world, mpool2, global, mpool2_wg.data());
 
-    //global[0] = 256; global[1] = 1; global[2] = 1;
     global[0] = ONEURON1; global[1] = 1; global[2] = 1;
     auto t_fc1 = launch_kernel_async(m_world, fc1, global, fc1_wg.data());
 
-    //global[0] = 10; global[1] = 1; global[2] = 1;
     global[0] = ONEURON2; global[1] = 1; global[2] = 1;
     auto t_fc2 = launch_kernel_async(m_world, fc2, global, fc2_wg.data());
     
@@ -152,7 +136,7 @@ DataBlob<float> oclCNN::runImg(DataBlob<float> & img)
     auto cnn_outs = data_device_to_host(m_world, softm_out);
     clFinish(m_world.command_queue);
 
-    std::cout << std::fixed << "Total Time Elapsed: " << fpga_elapsed << "\tus"  << '\n';
+    std::cout << std::fixed << "Total Time Elapsed: " << fpga_elapsed / 1000.0 << " ms"  << '\n';
 //    std::cout << "FPGA Elapsed Timings: \n";
 //    std::cout << "conv1: " << getProfileFromEvent(t_conv1) / 1000 << "\tus"  << '\n';
 //    std::cout << "pool1: " << getProfileFromEvent(t_pool1) / 1000 << "\tus"  << '\n';
@@ -161,6 +145,6 @@ DataBlob<float> oclCNN::runImg(DataBlob<float> & img)
 //    std::cout << "fc1  : " << getProfileFromEvent(t_fc1)   / 1000 << "\tus"  << '\n';
 //    std::cout << "fc2  : " << getProfileFromEvent(t_fc2)   / 1000 << "\tus"  << '\n';
 //    std::cout << "soft : " << getProfileFromEvent(t_soft)  / 1000 << "\tus"  << '\n';
-    std::cout << std::endl;
+//    std::cout << std::endl;
     return cnn_outs;
 }

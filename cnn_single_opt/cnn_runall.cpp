@@ -170,9 +170,27 @@ float cnn_runall::run_all()
         std::cout << "OCL FPGA Output: \n";
         print_classes(ocl_img_class.buffer);
     }
-    std::cout << std::endl;
+
+//    StopWatch<> seq_timing;
+//    for(auto & in_img : partial_test_imgs)
+//    {
+//        DataBlob<float> img = {in_img, {28, 28, 1}};
+//        auto seq_img_class = seq_cnn_img_test(img, model_params);
+//        seq_class.push_back(seq_img_class.buffer);
+//    }
+//    auto seq_t = seq_timing.stop();
+//    StopWatch<> ocl_timing;
+//    for(auto & in_img : partial_test_imgs)
+//    {
+//        DataBlob<float> img = {in_img, {28, 28, 1}};
+//        auto ocl_img_class = cnn_dev.runImg(img);
+//        ocl_class.push_back(ocl_img_class.buffer);
+//    }
+//    auto ocl_t = ocl_timing.stop();
+//    std::cout << std::endl;
 
     std::cout << std::fixed << std::setprecision(4);
+//    std::cout << "Seq time: " << seq_t << "us\tOcl Time: " << ocl_t << "us\n";
     std::cout << "Sequential run accuracy: " << getAccuracy(seq_class, partial_test_labels) * 100 << "%" << std::endl;
     std::cout << "OpenCL run accuracy: " << getAccuracy(ocl_class, partial_test_labels) * 100 << "%" << std::endl;
     return 0.0f;
