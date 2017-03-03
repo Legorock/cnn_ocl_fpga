@@ -19,11 +19,12 @@ if [ "$KERNEL_FUNC" == "" ]; then
 	echo "No function selected!"
 else
 	$KERNEL_FUNC="-k $KERNEL_FUNC"
+	echo "$KERNEL_FUNC is selected"
 fi
 
 echo "$SDA_FLOW build flow is choosen for ${KERNEL_SRCS}, output binary will be ${XCLBIN_NAME}.xclbin"
 xocc --xdevice ${XDEVICE} -t ${SDA_FLOW} -o ${XCLBIN_NAME}.xclbin --report estimate -s -j 8 -O3 ${KERNEL_SRCS}
-#xocc --xdevice ${XDEVICE} -t ${SDA_FLOW} -o ${XCLBIN_NAME}.xclbin ${KERNEL_CUs} --report estimate  -j 8 -O3 ${KERNEL_SRCS}
+#xocc --xdevice ${XDEVICE} -t ${SDA_FLOW} -o ${XCLBIN_NAME}.xclbin ${KERNEL_CUs} --report estimate -s -j 8 -O3 ${KERNEL_SRCS}
 
 if [ "$2" != "s" ]; then
 	echo "remove all llvm files!"

@@ -3,7 +3,7 @@
 
 // DATA type and shape precisions
 #define DATA_TYPE float
-#define DATA_SHAPE uchar
+//#define DATA_SHAPE uchar
 
 // Helper function for relu layer after aggregation
 DATA_TYPE relu(DATA_TYPE activation)
@@ -103,7 +103,8 @@ void load_model_ocm(__constant DATA_TYPE * conv1_w, __constant DATA_TYPE * conv1
 // and 'SAME' padding policy
 // 24x24 --> 12x12 
 // (num of feature maps defined by 3rd dim of global work size)
-__kernel __attribute__((reqd_work_group_size(4, 4, 4)))
+//__kernel __attribute__((reqd_work_group_size(4, 4, 4)))
+__kernel __attribute__((reqd_work_group_size(12, 12, 32)))
 void max_pool1()
 {
     size_t w = get_global_id(0);
@@ -127,7 +128,8 @@ void max_pool1()
 // and 'SAME' padding policy
 // 8x8 --> 4x4 
 // (num of feature maps defined by 3rd dim of global work size)
-__kernel __attribute__((reqd_work_group_size(4, 4, 4)))
+//__kernel __attribute__((reqd_work_group_size(4, 4, 4)))
+__kernel __attribute__((reqd_work_group_size(4, 4, 64)))
 void max_pool2()
 {
     size_t w = get_global_id(0);
@@ -161,18 +163,18 @@ __kernel __attribute__((reqd_work_group_size(CONV1_WG_X, CONV1_WG_Y, CONV1_WG_Z)
 void conv1(__global DATA_TYPE * in)
 {
     __local DATA_TYPE tile[TILE1_X * TILE1_Y * TILE1_Z]
-        __attribute__((xcl_array_partition(cyclic,2,1)));
-    __local DATA_TYPE wslice[MASK1_SIZE * MASK1_SIZE * MASK1_DEPTH];
+        __attribute__((xcl_array_partition(cyclic,5,1)));
+    __local DATA_TYPE w_cache[MASK1_SIZE * MASK1_SIZE * MASK1_DEPTH]
+        __attribute__((xcl_array_partition(cyclic,5,1)));
 
     size_t w = get_global_id(0);
     size_t h = get_global_id(1);
     size_t d = get_global_id(2);
 
-    size_t out_idx = w + OWIDTH1 * (h + OHEIGHT1 * d);
     async_work_group_copy(&tile[0], &in[0], (TILE1_X * TILE1_Y * TILE1_Z), 0);
     
-    ushort wslice_idx = d * MASK1_SIZE * MASK1_SIZE * MASK1_DEPTH;
-    async_work_group_copy(&wslice[0], &wc1[wslice_idx], MASK1_SIZE * MASK1_SIZE * MASK1_DEPTH, 0);
+    ushort w_idx = d * MASK1_SIZE * MASK1_SIZE * MASK1_DEPTH;
+    async_work_group_copy(&w_cache[0], &wc1[w_idx], MASK1_SIZE * MASK1_SIZE * MASK1_DEPTH, 0);
 
     DATA_TYPE c = (DATA_TYPE)0;
     for(size_t cd = 0; cd < MASK1_DEPTH; ++cd)
@@ -184,11 +186,13 @@ void conv1(__global DATA_TYPE * in)
             for(size_t cw = 0; cw < MASK1_SIZE; ++cw)
             {
                 c += tile[getIdx3D(cd, ch + h, cw + w, TILE1_X, TILE1_Y)]
-                    * wslice[getIdx3D(cd, ch, cw, MASK1_SIZE, MASK1_SIZE)];
+                    * w_cache[getIdx3D(cd, ch, cw, MASK1_SIZE, MASK1_SIZE)];
             }
         }
     }
-    CONV1_OUT[out_idx] = relu(c + bc1[d]);   
+
+    size_t out_idx = w + OWIDTH1 * (h + OHEIGHT1 * d);
+    CONV1_OUT[out_idx] = relu(c + bc1[d]);
     return;
 }
 
@@ -211,10 +215,10 @@ void conv2()
     __global DATA_TYPE * in = POOL1_OUT;
 
     __local DATA_TYPE tile[TILE2_X * TILE2_Y * TILE2_Z];
+//        __attribute__((xcl_array_partition(cyclic,25,1)));
     __local DATA_TYPE w_cache[MASK2_SIZE * MASK2_SIZE * MASK2_DEPTH * CONV2_WG_Z]
         __attribute__((xcl_array_partition(cyclic,5,1)));
     __local DATA_TYPE b_cache[CONV2_WG_Z];
- //   __local DATA_TYPE out_cache[CONV2_WG_X * CONV2_WG_Y * CONV2_WG_Z];
 
     __private DATA_TYPE acc_cache[MASK2_SIZE * MASK2_SIZE];
     uchar w = get_global_id(0);
@@ -259,18 +263,15 @@ void conv2()
 
     __attribute__((xcl_pipeline_workitems))
     {
-    __attribute__((opencl_unroll_hint))
-    for(ushort i = 0; i < MASK2_SIZE * MASK2_SIZE; ++i)
-    {
-        c += acc_cache[i];
+        __attribute__((opencl_unroll_hint))
+        for(ushort i = 0; i < MASK2_SIZE * MASK2_SIZE; ++i)
+        {
+            c += acc_cache[i];
+        }
+    
+        //CONV2_OUT[out_idx] = relu(c + bc2[d]);
+        CONV2_OUT[out_idx] = relu(c + b_cache[l_id]);
     }
-
-    //CONV2_OUT[out_idx] = relu(c + bc2[d]);
-    CONV2_OUT[out_idx] = relu(c + b_cache[l_id]);
-    }
-//    out_cache[getIdx3D(l_id, get_local_id(1), get_local_id(0), CONV2_WG_X, CONV2_WG_Y)] = relu(c + b_cache[l_id]);
-//    barrier(CLK_LOCAL_MEM_FENCE);
-//    async_work_group_copy(&CONV2
     return;
 }
 
@@ -310,7 +311,7 @@ void fc1()
     {
         DATA_TYPE n = 0;
         __attribute__((opencl_unroll_hint))
-        for(size_t i = 0; i < ACC_CACHE_SIZE; ++i)
+        for(ushort i = 0; i < ACC_CACHE_SIZE; ++i)
             n += acc_cache[i];
         out[neuron] = relu(n + bd1[neuron]);
     }

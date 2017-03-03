@@ -18,12 +18,12 @@ Total number of kernels: 8
 +-----------------------+------------+----------------------+-----------------+---------------+
 | Kernel Name           | Type       | Target               | OpenCL Library  | Compute Units |
 +-----------------------+------------+----------------------+-----------------+---------------+
+| fc2                   | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
 | fc1                   | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
 | conv1                 | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
-| max_pool2             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
-| fc2                   | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
-| softmax_layer         | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
 | load_model_ocm        | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
+| softmax_layer         | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
+| max_pool2             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
 | max_pool1             | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
 | conv2                 | clc        | fpga0:OCL_REGION_0   | bin_cnn_hw      | 8             |
 +-----------------------+------------+----------------------+-----------------+---------------+
@@ -39,7 +39,7 @@ Timing Information (MHz)
 | Compute Unit         | Kernel Name             | Target Frequency        | Estimated Frequency     |
 +----------------------+-------------------------+-------------------------+-------------------------+
 | softmax_layer_1      | softmax_layer           | 250                     | 342.466                 |
-| conv1_1              | conv1                   | 250                     | 311.526                 |
+| conv1_1              | conv1                   | 250                     | 317.46                  |
 | load_model_ocm_1     | load_model_ocm          | 250                     | 342.466                 |
 | max_pool1_1          | max_pool1               | 250                     | 342.466                 |
 | max_pool2_1          | max_pool2               | 250                     | 342.466                 |
@@ -53,10 +53,10 @@ Latency Information (clock cycles)
 | Compute Unit         | Kernel Name          | Start Interval       | Best Case            | Avg Case             | Worst Case           |
 +----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
 | softmax_layer_1      | softmax_layer        | 429                  | 428                  | 428                  | 428                  |
-| conv1_1              | conv1                | 9554                 | 9553                 | 9553                 | 9553                 |
+| conv1_1              | conv1                | 3850                 | 3849                 | 3849                 | 3849                 |
 | load_model_ocm_1     | load_model_ocm       | 318287               | 318286               | 318286               | 318286               |
-| max_pool1_1          | max_pool1            | 540                  | 539                  | 539                  | 539                  |
-| max_pool2_1          | max_pool2            | 539                  | 538                  | 538                  | 538                  |
+| max_pool1_1          | max_pool1            | 18717                | 18716                | 18716                | 18716                |
+| max_pool2_1          | max_pool2            | 4379                 | 4378                 | 4378                 | 4378                 |
 | conv2_1              | conv2                | 447336               | 447335               | 447335               | 447335               |
 | fc1_1                | fc1                  | 69505                | 69504                | 69504                | 69504                |
 | fc2_1                | fc2                  | 14973                | 14972                | 14972                | 14972                |
@@ -67,10 +67,10 @@ Area Information
 | Compute Unit         | Kernel Name          | FF         | LUT        | DSP        | BRAM       |
 +----------------------+----------------------+------------+------------+------------+------------+
 | softmax_layer_1      | softmax_layer        | 3539       | 4445       | 9          | 4          |
-| conv1_1              | conv1                | 9089       | 7556       | 11         | 19         |
+| conv1_1              | conv1                | 27410      | 27132      | 203        | 22         |
 | load_model_ocm_1     | load_model_ocm       | 8576       | 12115      | 0          | 18         |
-| max_pool1_1          | max_pool1            | 4366       | 5122       | 0          | 6          |
-| max_pool2_1          | max_pool2            | 3895       | 4334       | 0          | 6          |
+| max_pool1_1          | max_pool1            | 5343       | 6005       | 0          | 6          |
+| max_pool2_1          | max_pool2            | 3911       | 4366       | 0          | 6          |
 | conv2_1              | conv2                | 20562      | 15745      | 85         | 111        |
 | fc1_1                | fc1                  | 6713       | 6764       | 9          | 15         |
 | fc2_1                | fc2                  | 5022       | 5635       | 5          | 10         |
